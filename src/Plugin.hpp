@@ -1,7 +1,7 @@
 #pragma once
 #include "Utils.hpp"
 
-#define SAR_PLUGIN_SIGNATURE "SourceAutoRecord v" SAR_VERSION
+#define P2SM_PLUGIN_SIGNATURE "SourceAutoRecord v" P2SM_VERSION
 
 // CServerPlugin
 #define CServerPlugin_m_Size 16

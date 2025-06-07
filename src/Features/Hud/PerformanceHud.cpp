@@ -9,21 +9,21 @@
 
 #define PERFORMANCE_HUD_BUCKETS 20
 
-Variable sar_performance_hud("sar_performance_hud", "0", "Enables the performance HUD.\n1 = normal,\n2 = stats only.\n");
-Variable sar_performance_hud_duration("sar_performance_hud_duration", "60", 1, "How long (in frames) to measure performance for.\n");
+Variable p2sm_performance_hud("p2sm_performance_hud", "0", "Enables the performance HUD.\n1 = normal,\n2 = stats only.\n");
+Variable p2sm_performance_hud_duration("p2sm_performance_hud_duration", "60", 1, "How long (in frames) to measure performance for.\n");
 
-Variable sar_performance_hud_x("sar_performance_hud_x", "20", "X position of the performance HUD.\n");
-Variable sar_performance_hud_y("sar_performance_hud_y", "300", "Y position of the performance HUD.\n");
-Variable sar_performance_hud_font_index("sar_performance_hud_font_index", "6", "Font index of the performance HUD.\n");
+Variable p2sm_performance_hud_x("p2sm_performance_hud_x", "20", "X position of the performance HUD.\n");
+Variable p2sm_performance_hud_y("p2sm_performance_hud_y", "300", "Y position of the performance HUD.\n");
+Variable p2sm_performance_hud_font_index("p2sm_performance_hud_font_index", "6", "Font index of the performance HUD.\n");
 
 bool PerformanceHud::ShouldDraw() {
-	return sar_performance_hud.GetBool();
+	return p2sm_performance_hud.GetBool();
 }
 
 void PerformanceHud::Paint(int slot) {
-	int x = sar_performance_hud_x.GetInt();
-	int y = sar_performance_hud_y.GetInt();
-	int font = sar_performance_hud_font_index.GetInt();
+	int x = p2sm_performance_hud_x.GetInt();
+	int y = p2sm_performance_hud_y.GetInt();
+	int font = p2sm_performance_hud_font_index.GetInt();
 	int lineHeight = surface->GetFontHeight(font);
 
 	float min_offTick = FLT_MAX;
@@ -56,7 +56,7 @@ void PerformanceHud::Paint(int slot) {
 		mean_onTick = mean_offTick;
 	}
 
-	if (sar_performance_hud.GetInt() > 1) return;
+	if (p2sm_performance_hud.GetInt() > 1) return;
 
 	int buckets = PERFORMANCE_HUD_BUCKETS;
 
@@ -101,7 +101,7 @@ void PerformanceHud::Paint(int slot) {
 }
 
 void PerformanceHud::OnFrame(float frametime) {
-	if (!sar_performance_hud.GetBool()) {
+	if (!p2sm_performance_hud.GetBool()) {
 		if (this->frametimes_offTick.size() > 0) {
 			this->frametimes_offTick.clear();
 		}
@@ -115,27 +115,27 @@ void PerformanceHud::OnFrame(float frametime) {
 		// TODO: in sp this will be render + 2x tick (accum_ticks = 2)
 		// in mp it's render + tick. maybe account for that?
 		this->frametimes_onTick.push_back(frametime);
-		while (this->frametimes_onTick.size() > (unsigned)sar_performance_hud_duration.GetInt()) {
+		while (this->frametimes_onTick.size() > (unsigned)p2sm_performance_hud_duration.GetInt()) {
 			this->frametimes_onTick.erase(this->frametimes_onTick.begin());
 		}
 		this->accum_ticks = 0;
 	} else {
 		this->frametimes_offTick.push_back(frametime);
-		while (this->frametimes_offTick.size() > (unsigned)sar_performance_hud_duration.GetInt()) {
+		while (this->frametimes_offTick.size() > (unsigned)p2sm_performance_hud_duration.GetInt()) {
 			this->frametimes_offTick.erase(this->frametimes_offTick.begin());
 		}
 	}
 }
 
 ON_EVENT(PRE_TICK) {
-	if (!sar_performance_hud.GetBool()) {
+	if (!p2sm_performance_hud.GetBool()) {
 		performanceHud->accum_ticks = 0;
 		return;
 	}
 	performanceHud->accum_ticks++;
 }
 
-CON_COMMAND(sar_performance_hud_clear, "Clears the performance HUD data.\n") {
+CON_COMMAND(p2sm_performance_hud_clear, "Clears the performance HUD data.\n") {
 	performanceHud->frametimes_offTick.clear();
 	performanceHud->frametimes_onTick.clear();
 }

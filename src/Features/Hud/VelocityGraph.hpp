@@ -14,11 +14,11 @@ public:
 
 extern VelocityGraph *velocityGraph;
 
-extern Variable sar_velocitygraph;
-extern Variable sar_velocitygraph_font_index;
-extern Variable sar_velocitygraph_show_line;
-extern Variable sar_velocitygraph_x;
-extern Variable sar_velocitygraph_y;
-extern Variable sar_velocitygraph_background;
-extern Variable sar_velocitygraph_show_speed_on_graph;
-extern Variable sar_velocitygraph_rainbow;
+extern Variable p2sm_velocitygraph;
+extern Variable p2sm_velocitygraph_font_index;
+extern Variable p2sm_velocitygraph_show_line;
+extern Variable p2sm_velocitygraph_x;
+extern Variable p2sm_velocitygraph_y;
+extern Variable p2sm_velocitygraph_background;
+extern Variable p2sm_velocitygraph_show_speed_on_graph;
+extern Variable p2sm_velocitygraph_rainbow;

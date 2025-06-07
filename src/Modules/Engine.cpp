@@ -43,19 +43,19 @@ Variable mat_norendering;
 Variable mat_filtertextures;
 Variable phys_timescale;
 
-Variable sar_record_at("sar_record_at", "-1", -1, "Start recording a demo at the tick specified. Will use sar_record_at_demo_name.\n", 0);
-Variable sar_record_at_demo_name("sar_record_at_demo_name", "chamber", "Name of the demo automatically recorded.\n", 0);
-Variable sar_record_at_increment("sar_record_at_increment", "0", "Increment automatically the demo name.\n");
+Variable p2sm_record_at("p2sm_record_at", "-1", -1, "Start recording a demo at the tick specified. Will use p2sm_record_at_demo_name.\n", 0);
+Variable p2sm_record_at_demo_name("p2sm_record_at_demo_name", "chamber", "Name of the demo automatically recorded.\n", 0);
+Variable p2sm_record_at_increment("p2sm_record_at_increment", "0", "Increment automatically the demo name.\n");
 
-Variable sar_pause_at("sar_pause_at", "-1", -1, "Pause at the specified tick. -1 to deactivate it.\n");
-Variable sar_pause_for("sar_pause_for", "0", 0, "Pause for this amount of ticks.\n");
+Variable p2sm_pause_at("p2sm_pause_at", "-1", -1, "Pause at the specified tick. -1 to deactivate it.\n");
+Variable p2sm_pause_for("p2sm_pause_for", "0", 0, "Pause for this amount of ticks.\n");
 
-Variable sar_tick_debug("sar_tick_debug", "0", 0, 3, "Output debugging information to the console related to ticks and frames.\n");
-Variable sar_frametime_debug("sar_frametime_debug", "0", "Output debugging information to the console related to frametime.\n"); // see also host_print_frame_times
-Variable sar_frametime_uncap("sar_frametime_uncap", "0", "EXPERIMENTAL - USE AT OWN RISK. Removes the 10-1000 FPS cap on frametime. More info https://wiki.portal2.sr/Frametime\n");
-Variable sar_command_debug("sar_command_debug", "0", 0, 2, "Output debugging information to the console related to commands. **Breaks svar_capture**\n");
+Variable p2sm_tick_debug("p2sm_tick_debug", "0", 0, 3, "Output debugging information to the console related to ticks and frames.\n");
+Variable p2sm_frametime_debug("p2sm_frametime_debug", "0", "Output debugging information to the console related to frametime.\n"); // see also host_print_frame_times
+Variable p2sm_frametime_uncap("p2sm_frametime_uncap", "0", "EXPERIMENTAL - USE AT OWN RISK. Removes the 10-1000 FPS cap on frametime. More info https://wiki.portal2.sr/Frametime\n");
+Variable p2sm_command_debug("p2sm_command_debug", "0", 0, 2, "Output debugging information to the console related to commands. **Breaks svar_capture**\n");
 
-Variable sar_cm_rightwarp("sar_cm_rightwarp", "0", "Fix CM wrongwarp.\n");
+Variable p2sm_cm_rightwarp("p2sm_cm_rightwarp", "0", "Fix CM wrongwarp.\n");
 
 float g_cur_fps = 0.0f;
 
@@ -108,7 +108,7 @@ float Engine::GetIPT() { // IntervalPerTick
 	if (this->interval_per_tick) {
 		return *this->interval_per_tick;
 	}
-	return 1.0f / sar.game->Tickrate();
+	return 1.0f / p2sm.game->Tickrate();
 }
 int Engine::GetTick() {
 	return (this->GetMaxClients() < 2 || engine->demoplayer->IsPlaying()) ? *this->tickcount : TIME_TO_TICKS(*this->net_time);
@@ -164,8 +164,8 @@ int Engine::PointToScreen(const Vector &point, Vector &screen) {
 void Engine::SafeUnload(const char *postCommand) {
 
 	// give events some time to execute before plugin is disabled
-	Event::Trigger<Event::SAR_UNLOAD>({});
-	this->ExecuteCommand("sar_exit");
+	Event::Trigger<Event::P2SM_UNLOAD>({});
+	this->ExecuteCommand("p2sm_exit");
 
 	if (postCommand) {
 		this->SendToCommandBuffer(postCommand, SAFE_UNLOAD_TICK_DELAY);
@@ -173,7 +173,7 @@ void Engine::SafeUnload(const char *postCommand) {
 }
 bool Engine::isRunning() {
 	auto hoststate_run = HS_RUN;
-	if (sar.game->Is(SourceGame_INFRA)) hoststate_run = INFRA_HS_RUN;
+	if (p2sm.game->Is(SourceGame_INFRA)) hoststate_run = INFRA_HS_RUN;
 	return engine->hoststate->m_activeGame && engine->hoststate->m_currentState == hoststate_run;
 }
 bool Engine::IsGamePaused() {
@@ -298,19 +298,19 @@ bool Engine::TraceFromCamera(float distMax, int mask, CGameTrace &tr) {
 
 ON_EVENT(PRE_TICK) {
 	if (!engine->demoplayer->IsPlaying()) {
-		if (sar_pause_at.GetInt() == -1 || (!sv_cheats.GetBool() && sar_pause_at.GetInt() > 0)) {
-			if (sar_pause_at.GetInt() != -1 && !engine->hasPaused) {
-				console->Print("sar_pause_at values over 0 are only usable with sv_cheats\n");
+		if (p2sm_pause_at.GetInt() == -1 || (!sv_cheats.GetBool() && p2sm_pause_at.GetInt() > 0)) {
+			if (p2sm_pause_at.GetInt() != -1 && !engine->hasPaused) {
+				console->Print("p2sm_pause_at values over 0 are only usable with sv_cheats\n");
 			}
-			engine->hasPaused = true;  // We don't want to randomly pause if the user sets sar_pause_at in this session
+			engine->hasPaused = true;  // We don't want to randomly pause if the user sets p2sm_pause_at in this session
 			engine->isPausing = false;
 		} else {
-			if (!engine->hasPaused && session->isRunning && event.tick >= sar_pause_at.GetInt()) {
+			if (!engine->hasPaused && session->isRunning && event.tick >= p2sm_pause_at.GetInt()) {
 				engine->ExecuteCommand("pause", true);
 				engine->hasPaused = true;
 				engine->isPausing = true;
 				engine->pauseTick = server->tickCount;
-			} else if (sar_pause_for.GetInt() > 0 && engine->isPausing && server->tickCount >= sar_pause_for.GetInt() + engine->pauseTick) {
+			} else if (p2sm_pause_for.GetInt() > 0 && engine->isPausing && server->tickCount >= p2sm_pause_for.GetInt() + engine->pauseTick) {
 				engine->ExecuteCommand("unpause", true);
 				engine->isPausing = false;
 			}
@@ -356,7 +356,7 @@ DETOUR(Engine::Disconnect, bool bShowMainMenu) {
 
 // CClientState::SetSignonState
 DETOUR(Engine::SetSignonState, int state, int count, void *unk) {
-	if (sar_tick_debug.GetInt() >= 2) {
+	if (p2sm_tick_debug.GetInt() >= 2) {
 		int host, server, client;
 		engine->GetTicks(host, server, client);
 		console->Print("CClientState::SetSignonState %d (host=%d server=%d client=%d)\n", state, host, server, client);
@@ -405,11 +405,11 @@ void Engine::GetTicks(int &host, int &server, int &client) {
 
 // CEngine::Frame
 DETOUR(Engine::Frame) {
-	if (sar_tick_debug.GetInt() >= 2) {
+	if (p2sm_tick_debug.GetInt() >= 2) {
 		static int lastServer, lastClient;
 		int host, server, client;
 		engine->GetTicks(host, server, client);
-		if (server != lastServer || client != lastClient || sar_tick_debug.GetInt() >= 3) {
+		if (server != lastServer || client != lastClient || p2sm_tick_debug.GetInt() >= 3) {
 			console->Print("CEngine::Frame (host=%d server=%d client=%d)\n", host, server, client);
 			lastServer = server;
 			lastClient = client;
@@ -522,7 +522,7 @@ _def:
 
 // CSteam3Client::OnGameOverlayActivated
 DETOUR_B(Engine::OnGameOverlayActivated, GameOverlayActivated_t *pGameOverlayActivated) {
-	engine->shouldSuppressPause = sar_disable_steam_pause.GetBool() && pGameOverlayActivated->m_bActive;
+	engine->shouldSuppressPause = p2sm_disable_steam_pause.GetBool() && pGameOverlayActivated->m_bActive;
 	return Engine::OnGameOverlayActivatedBase(thisptr, pGameOverlayActivated);
 }
 
@@ -531,9 +531,9 @@ DETOUR_COMMAND(Engine::plugin_load) {
 	// the plugin list if the initial search thread failed
 	if (args.ArgC() >= 2) {
 		auto file = std::string(args[1]);
-		if (Utils::EndsWith(file, std::string(MODULE("sar"))) || Utils::EndsWith(file, std::string("sar"))) {
-			if (sar.GetPlugin()) {
-				sar.plugin->ptr->m_bDisable = true;
+		if (Utils::EndsWith(file, std::string(MODULE("p2sm"))) || Utils::EndsWith(file, std::string("p2sm"))) {
+			if (p2sm.GetPlugin()) {
+				p2sm.plugin->ptr->m_bDisable = true;
 				console->PrintActive("SAR: Plugin fully loaded!\n");
 			}
 			return;
@@ -543,7 +543,7 @@ DETOUR_COMMAND(Engine::plugin_load) {
 	Engine::plugin_load_callback(args);
 }
 DETOUR_COMMAND(Engine::plugin_unload) {
-	if (args.ArgC() >= 2 && sar.GetPlugin() && std::atoi(args[1]) == sar.plugin->index) {
+	if (args.ArgC() >= 2 && p2sm.GetPlugin() && std::atoi(args[1]) == p2sm.plugin->index) {
 		engine->SafeUnload();
 	} else {
 		engine->plugin_unload_callback(args);
@@ -590,7 +590,7 @@ DETOUR_COMMAND(Engine::load) {
 	if (Game::mapNames.empty() && networkManager.isConnected) {
 		networkManager.disableSyncForLoad = true;
 	}
-	if (sar_cm_rightwarp.GetBool() && sv_bonus_challenge.GetBool()) {
+	if (p2sm_cm_rightwarp.GetBool() && sv_bonus_challenge.GetBool()) {
 		sv_bonus_challenge.SetValue(false);
 	}
 	engine->tickLoadStarted = engine->GetTick();
@@ -624,7 +624,7 @@ DECL_CVAR_CALLBACK(ss_force_primary_fullscreen) {
 	if (engine->GetMaxClients() >= 2 && client->GetChallengeStatus() != CMStatus::CHALLENGE && ss_force_primary_fullscreen.GetInt() == 0) {
 		if (engine->startedTransitionFadeout && !engine->coopResumed && !engine->IsOrange()) {
 			// if the game is not Portal Reloaded (see src/Features/ReloadedFix.cpp)
-			if (sar.game->GetVersion() != SourceGame_PortalReloaded) {
+			if (p2sm.game->GetVersion() != SourceGame_PortalReloaded) {
 				engine->coopResumed = true;
 				SpeedrunTimer::Resume();
 				SpeedrunTimer::OnLoad();
@@ -649,7 +649,7 @@ bool __fastcall ProcessTick_Detour(void *thisptr, void *unused, void *pack)
 bool ProcessTick_Detour(void *thisptr, void *pack)
 #endif
 {
-	if (sar_tick_debug.GetInt() >= 1) {
+	if (p2sm_tick_debug.GetInt() >= 1) {
 		int host, server, client;
 		engine->GetTicks(host, server, client);
 		console->Print("NET_Tick %d (host=%d server=%d client=%d)\n", *(int *)((char *)pack + 16), host, server, client);
@@ -718,16 +718,16 @@ void Host_AccumulateTime_Detour(float dt) {
 
 	// HACK: Force frametime to equal a tick while loading
 	// Limits host_timescale effect on load times, faster loads
-	if (g_loadstate == LOADING && sar_loads_uncap.GetBool()) {
+	if (g_loadstate == LOADING && p2sm_loads_uncap.GetBool()) {
 		*host_frametime = *host_frametime_unbounded = engine->GetIPT();
 	}
 
 	if (*host_frametime != *host_frametime_unbounded) {
-		if (sar_frametime_uncap.GetBool() && g_loadstate == LOADED) {
-			if (sar_frametime_debug.GetBool()) console->Print("Host_AccumulateTime: %f (uncapped from %f)\n", *host_frametime_unbounded, *host_frametime);
+		if (p2sm_frametime_uncap.GetBool() && g_loadstate == LOADED) {
+			if (p2sm_frametime_debug.GetBool()) console->Print("Host_AccumulateTime: %f (uncapped from %f)\n", *host_frametime_unbounded, *host_frametime);
 			*host_frametime = *host_frametime_unbounded;
 		} else {
-			if (sar_frametime_debug.GetBool()) console->Print("Host_AccumulateTime: %f (capped to %f)\n", *host_frametime_unbounded, *host_frametime);
+			if (p2sm_frametime_debug.GetBool()) console->Print("Host_AccumulateTime: %f (capped to %f)\n", *host_frametime_unbounded, *host_frametime);
 			if (engine->demorecorder->isRecordingDemo && g_loadstate == LOADED) {
 				char data[5];
 				data[0] = 0x0F;
@@ -736,7 +736,7 @@ void Host_AccumulateTime_Detour(float dt) {
 			}
 		}
 	} else {
-		if (sar_frametime_debug.GetBool()) console->Print("Host_AccumulateTime: %f\n", *host_frametime);
+		if (p2sm_frametime_debug.GetBool()) console->Print("Host_AccumulateTime: %f\n", *host_frametime);
 	}
 
 	if (g_loadstate == LOAD_END) g_loadstate = LOADED;
@@ -752,7 +752,7 @@ const ConCommandBase *Cmd_ExecuteCommand_Detour(int eTarget, const CCommand &com
 			engine->demorecorder->queuedCommands.push_back(command.m_pArgSBuffer);
 		}
 	}
-	if (sar_command_debug.GetInt() >= 1) {
+	if (p2sm_command_debug.GetInt() >= 1) {
 		auto cmd = std::string(command.m_pArgSBuffer);
 		cmd.erase(std::remove(cmd.begin(), cmd.end(), '\n'), cmd.end());
 		cmd.erase(0, cmd.find_first_not_of(" \t"));
@@ -781,7 +781,7 @@ bool __fastcall InsertCommand_Detour(void *thisptr, void *unused, char *pArgS, i
 #else
 bool InsertCommand_Detour(void *thisptr, char *pArgS, int nCommandSize, int nTick) {
 #endif
-	if (sar_command_debug.GetInt() >= 2) {
+	if (p2sm_command_debug.GetInt() >= 2) {
 		auto cmd = std::string(pArgS);
 		cmd.erase(std::remove(cmd.begin(), cmd.end(), '\n'), cmd.end());
 		cmd.erase(0, cmd.find_first_not_of(" \t"));
@@ -831,10 +831,10 @@ ON_EVENT(SESSION_END) {
 	g_bink_last_frames.clear();
 }
 
-Variable sar_bink_respect_host_time("sar_bink_respect_host_time", "1", "Make BINK video playback respect host time.\n");
+Variable p2sm_bink_respect_host_time("p2sm_bink_respect_host_time", "1", "Make BINK video playback respect host time.\n");
 
 ON_EVENT(FRAME) {
-	if (!sar_bink_respect_host_time.GetBool()) {
+	if (!p2sm_bink_respect_host_time.GetBool()) {
 		g_bink_override_active = false;
 		g_bink_last_frames.clear();
 		return;

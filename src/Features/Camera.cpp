@@ -5,7 +5,6 @@
 #include "Features/EntityList.hpp"
 #include "Features/OverlayRender.hpp"
 #include "Features/Timer/PauseTimer.hpp"
-#include "Features/Tas/TasPlayer.hpp"
 #include "Modules/Client.hpp"
 #include "Modules/Console.hpp"
 #include "Modules/Engine.hpp"
@@ -20,32 +19,32 @@
 
 Camera *camera;
 
-Variable sar_cam_control("sar_cam_control", "0", 0, 3,
-                         "sar_cam_control <type>: Change type of camera control.\n"
+Variable p2sm_cam_control("p2sm_cam_control", "0", 0, 3,
+                         "p2sm_cam_control <type>: Change type of camera control.\n"
                          "0 = Default (camera is controlled by game engine),\n"
                          "1 = Drive mode (camera is separated and can be controlled by user input),\n"
                          "2 = Cinematic mode (camera is controlled by predefined path).\n"
                          "3 = Follow mode (Camera is following the player but not rotating, useful when strafing on gel).\n");
 
-Variable sar_cam_drive("sar_cam_drive", "1", 0, 1,
+Variable p2sm_cam_drive("p2sm_cam_drive", "1", 0, 1,
                        "Enables or disables camera drive mode in-game "
                        "(turning it on is not required for demo player)\n");
 
-Variable sar_cam_ortho("sar_cam_ortho", "0", 0, 1, "Enables or disables camera orthographic projection.\n");
-Variable sar_cam_ortho_scale("sar_cam_ortho_scale", "1", 0.001f, "Changes the scale of orthographic projection (how many units per pixel).\n");
-Variable sar_cam_ortho_nearz("sar_cam_ortho_nearz", "1", -10000, 10000, "Changes the near Z plane of orthographic projection.\n");
+Variable p2sm_cam_ortho("p2sm_cam_ortho", "0", 0, 1, "Enables or disables camera orthographic projection.\n");
+Variable p2sm_cam_ortho_scale("p2sm_cam_ortho_scale", "1", 0.001f, "Changes the scale of orthographic projection (how many units per pixel).\n");
+Variable p2sm_cam_ortho_nearz("p2sm_cam_ortho_nearz", "1", -10000, 10000, "Changes the near Z plane of orthographic projection.\n");
 
-Variable sar_cam_force_eye_pos("sar_cam_force_eye_pos", "0", 0, 1,
+Variable p2sm_cam_force_eye_pos("p2sm_cam_force_eye_pos", "0", 0, 1,
                        "Forces camera to be placed exactly on the player's eye position\n");
 
-Variable sar_cam_path_interp("sar_cam_path_interp", "2", 0, 2, 
+Variable p2sm_cam_path_interp("p2sm_cam_path_interp", "2", 0, 2, 
                        "Sets interpolation type between keyframes for cinematic camera.\n"
                        "0 = Linear interpolation\n"
                        "1 = Cubic spline\n"
                        "2 = Piecewise Cubic Hermite Interpolating Polynomial (PCHIP)\n"
 );
 
-Variable sar_cam_path_draw("sar_cam_path_draw", "0", 0, 1, "Draws a representation of the camera path in the world. Disabled in cinematic mode.\n");
+Variable p2sm_cam_path_draw("p2sm_cam_path_draw", "0", 0, 1, "Draws a representation of the camera path in the world. Disabled in cinematic mode.\n");
 
 Variable cl_skip_player_render_in_main_view;
 Variable ss_force_primary_fullscreen;
@@ -70,14 +69,14 @@ Camera::~Camera() {
 	ResetCameraRelatedCvars();
 }
 
-ON_EVENT(SAR_UNLOAD) {
+ON_EVENT(P2SM_UNLOAD) {
 	ResetCameraRelatedCvars();
 }
 
 //if in drive mode, checks if player wants to control the camera
 //for now it requires LMB input (as in demo drive mode)
 bool Camera::IsDriving() {
-	bool drivingInGame = sar_cam_drive.GetBool() && sv_cheats.GetBool() && engine->hoststate->m_activeGame;
+	bool drivingInGame = p2sm_cam_drive.GetBool() && sv_cheats.GetBool() && engine->hoststate->m_activeGame;
 	bool drivingInDemo = engine->demoplayer->IsPlaying();
 	bool wantingToDrive = inputSystem->IsKeyDown(ButtonCode_t::MOUSE_LEFT);
 	bool isUI = vgui->IsUIVisible();
@@ -111,7 +110,7 @@ float InterpolateCurve(std::vector<Vector> points, float x, bool dealingWithAngl
 
 	float t = (x - points[PREV].x) / (points[NEXT].x - points[PREV].x);
 
-	switch (sar_cam_path_interp.GetInt()) {
+	switch (p2sm_cam_path_interp.GetInt()) {
 	case 1: {
 		// cubic spline... i think? No idea what the fuck 2019 me has put here
 		// and it's not like i got any more intelligent over time
@@ -209,7 +208,7 @@ CameraState Camera::InterpolateStates(float time) {
 		      LAST };
 
 	//reading 4 frames closest to time
-	float frameTime = time * sar.game->Tickrate();
+	float frameTime = time * p2sm.game->Tickrate();
 	int frames[4] = {INT_MIN, INT_MIN, INT_MAX, INT_MAX};
 	for (auto const &state : camera->states) {
 		int stateTime = state.first;
@@ -279,7 +278,7 @@ void Camera::DrawInWorld() const {
 
 	if (camera->states.size() < 2) return;
 
-	if (!(sv_cheats.GetBool() || engine->demoplayer->IsPlaying()) || !sar_cam_path_draw.GetBool() || sar_cam_control.GetInt() == 2) return;
+	if (!(sv_cheats.GetBool() || engine->demoplayer->IsPlaying()) || !p2sm_cam_path_draw.GetBool() || p2sm_cam_control.GetInt() == 2) return;
 
 	MeshId mesh_path = OverlayRender::createMesh(RenderCallback::none, RenderCallback::constant({ 255, 255, 255 }, true));
 	MeshId mesh_cams = OverlayRender::createMesh(RenderCallback::none, RenderCallback::constant({ 255, 0, 0 }, true));
@@ -378,7 +377,7 @@ void Camera::OverrideView(ViewSetup *m_View) {
 	float real_frame_time = std::chrono::duration_cast<std::chrono::duration<float>>(now - last_frame).count();
 	last_frame = now;
 
-	if (sar_cam_force_eye_pos.GetBool() && sv_cheats.GetBool()) {
+	if (p2sm_cam_force_eye_pos.GetBool() && sv_cheats.GetBool()) {
 		Vector eyePos;
 		QAngle eyeAng;
 		if (GetEyePos<false>(GET_SLOT(), eyePos, eyeAng)) {
@@ -392,7 +391,7 @@ void Camera::OverrideView(ViewSetup *m_View) {
 		timeOffsetRefreshRequested = false;
 	}
 
-	auto newControlType = static_cast<CameraControlType>(sar_cam_control.GetInt());
+	auto newControlType = static_cast<CameraControlType>(p2sm_cam_control.GetInt());
 
 	//don't allow cinematic mode outside of demo player
 	if (!engine->demoplayer->IsPlaying() && newControlType == Cinematic) {
@@ -403,7 +402,7 @@ void Camera::OverrideView(ViewSetup *m_View) {
 			ResetCameraRelatedCvars();
 		}
 		newControlType = controlType;
-		sar_cam_control.SetValue(controlType);
+		p2sm_cam_control.SetValue(controlType);
 	}
 
 	//don't allow drive mode when not using sv_cheats
@@ -415,7 +414,7 @@ void Camera::OverrideView(ViewSetup *m_View) {
 			ResetCameraRelatedCvars();
 		}
 		newControlType = controlType;
-		sar_cam_control.SetValue(controlType);
+		p2sm_cam_control.SetValue(controlType);
 	}
 
 	//don't allow follow mode when not using sv_cheats
@@ -427,7 +426,7 @@ void Camera::OverrideView(ViewSetup *m_View) {
 			ResetCameraRelatedCvars();
 		}
 		newControlType = controlType;
-		sar_cam_control.SetValue(controlType);
+		p2sm_cam_control.SetValue(controlType);
 	}
 
 	//janky hack mate
@@ -479,7 +478,7 @@ void Camera::OverrideView(ViewSetup *m_View) {
 				}
 				if (manualActive) {
 					//even junkier hack. lock mouse movement using fake in_forceuser LMAO
-					if (engine->hoststate->m_activeGame && !tasPlayer->IsActive()) {
+					if (engine->hoststate->m_activeGame) {
 						in_forceuser.ThisPtr()->m_nValue = engine->GetMaxClients() + 1;
 					}
 
@@ -561,21 +560,21 @@ void Camera::OverrideView(ViewSetup *m_View) {
 			m_View->fov = currentState.fov;
 		}
 	}
-	if (sar_cam_ortho.GetBool() && sv_cheats.GetBool()) {
+	if (p2sm_cam_ortho.GetBool() && sv_cheats.GetBool()) {
 		m_View->m_bOrtho = true;
 
 		int width, height;
 		engine->GetScreenSize(nullptr, width, height);
 
-		float halfWidth = width * 0.5f * sar_cam_ortho_scale.GetFloat();
-		float halfHeight = height * 0.5f * sar_cam_ortho_scale.GetFloat();
+		float halfWidth = width * 0.5f * p2sm_cam_ortho_scale.GetFloat();
+		float halfHeight = height * 0.5f * p2sm_cam_ortho_scale.GetFloat();
 
 		m_View->m_OrthoRight = halfWidth;
 		m_View->m_OrthoLeft = -halfWidth;
 		m_View->m_OrthoBottom = halfHeight;
 		m_View->m_OrthoTop = -halfHeight;
 
-		m_View->zNear = sar_cam_ortho_nearz.GetFloat();
+		m_View->zNear = p2sm_cam_ortho_nearz.GetFloat();
 	}
 }
 
@@ -589,7 +588,7 @@ void Camera::RequestCameraRefresh() {
 
 void Camera::OverrideMovement(CUserCmd *cmd) {
 	//blocking keyboard inputs on manual mode
-	if (IsDriving() && !tasPlayer->IsActive()) {
+	if (IsDriving()) {
 		cmd->buttons = 0;
 		cmd->forwardmove = 0;
 		cmd->sidemove = 0;
@@ -599,7 +598,7 @@ void Camera::OverrideMovement(CUserCmd *cmd) {
 
 
 Vector Camera::GetPosition(int slot, bool raw) {
-	bool cam_control = sar_cam_control.GetInt() == 1 && sv_cheats.GetBool();
+	bool cam_control = p2sm_cam_control.GetInt() == 1 && sv_cheats.GetBool();
 
 	Vector cam_pos = (!raw && cam_control) ? camera->currentState.origin : rawState.origin;
 
@@ -607,7 +606,7 @@ Vector Camera::GetPosition(int slot, bool raw) {
 }
 
 Vector Camera::GetForwardVector(int slot, bool raw) {
-	bool cam_control = sar_cam_control.GetInt() == 1 && sv_cheats.GetBool();
+	bool cam_control = p2sm_cam_control.GetInt() == 1 && sv_cheats.GetBool();
 
 	QAngle ang = (!raw && cam_control) ? camera->currentState.angles : rawState.angles;
 	Vector view_vec = Vector{
@@ -622,7 +621,7 @@ Vector Camera::GetForwardVector(int slot, bool raw) {
 
 //COMMANDS
 
-DECL_COMMAND_COMPLETION(sar_cam_path_setkf) {
+DECL_COMMAND_COMPLETION(p2sm_cam_path_setkf) {
 	for (auto const &state : camera->states) {
 		if (items.size() == COMMAND_COMPLETION_MAXITEMS) {
 			break;
@@ -648,10 +647,10 @@ DECL_COMMAND_COMPLETION(sar_cam_path_setkf) {
 }
 
 CON_COMMAND_F_COMPLETION(
-	sar_cam_path_setkf,
-	"sar_cam_path_setkf [frame] [x] [y] [z] [pitch] [yaw] [roll] [fov] - sets the camera path keyframe\n",
+	p2sm_cam_path_setkf,
+	"p2sm_cam_path_setkf [frame] [x] [y] [z] [pitch] [yaw] [roll] [fov] - sets the camera path keyframe\n",
 	0,
-	AUTOCOMPLETION_FUNCTION(sar_cam_path_setkf)) {
+	AUTOCOMPLETION_FUNCTION(p2sm_cam_path_setkf)) {
 	if (!engine->demoplayer->IsPlaying())
 		return console->Print("Cinematic mode cannot be used outside of demo player.\n");
 
@@ -680,11 +679,11 @@ CON_COMMAND_F_COMPLETION(
 		console->Print(std::string(campos).c_str());
 		console->Print("\n");
 	} else {
-		return console->Print(sar_cam_path_setkf.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cam_path_setkf.ThisPtr()->m_pszHelpString);
 	}
 }
 
-DECL_COMMAND_COMPLETION(sar_cam_path_showkf) {
+DECL_COMMAND_COMPLETION(p2sm_cam_path_showkf) {
 	for (auto const &state : camera->states) {
 		if (items.size() == COMMAND_COMPLETION_MAXITEMS) {
 			break;
@@ -709,10 +708,10 @@ DECL_COMMAND_COMPLETION(sar_cam_path_showkf) {
 }
 
 CON_COMMAND_F_COMPLETION(
-	sar_cam_path_showkf,
-	"sar_cam_path_showkf <frame> - display information about camera path keyframe at specified frame\n",
+	p2sm_cam_path_showkf,
+	"p2sm_cam_path_showkf <frame> - display information about camera path keyframe at specified frame\n",
 	0,
-	AUTOCOMPLETION_FUNCTION(sar_cam_path_showkf)) {
+	AUTOCOMPLETION_FUNCTION(p2sm_cam_path_showkf)) {
 	if (!engine->demoplayer->IsPlaying())
 		return console->Print("Cinematic mode cannot be used outside of demo player.\n");
 
@@ -725,27 +724,27 @@ CON_COMMAND_F_COMPLETION(
 			console->Print("This keyframe does not exist.\n");
 		}
 	} else {
-		return console->Print(sar_cam_path_showkf.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cam_path_showkf.ThisPtr()->m_pszHelpString);
 	}
 }
 
-CON_COMMAND(sar_cam_path_getkfs, "sar_cam_path_getkfs - exports commands for recreating currently made camera path\n") {
+CON_COMMAND(p2sm_cam_path_getkfs, "p2sm_cam_path_getkfs - exports commands for recreating currently made camera path\n") {
 	if (!engine->demoplayer->IsPlaying())
 		return console->Print("Cinematic mode cannot be used outside of demo player.\n");
 
 	if (args.ArgC() == 1) {
 		for (auto const &state : camera->states) {
 			CameraState cam = state.second;
-			console->Print("sar_cam_path_setkf %d %f %f %f %f %f %f %f;\n", state.first, cam.origin.x, cam.origin.y, cam.origin.z, cam.angles.x, cam.angles.y, cam.angles.z, cam.fov);
+			console->Print("p2sm_cam_path_setkf %d %f %f %f %f %f %f %f;\n", state.first, cam.origin.x, cam.origin.y, cam.origin.z, cam.angles.x, cam.angles.y, cam.angles.z, cam.fov);
 		}
 	} else {
-		return console->Print(sar_cam_path_getkfs.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cam_path_getkfs.ThisPtr()->m_pszHelpString);
 	}
 }
 
 
 
-DECL_COMMAND_COMPLETION(sar_cam_path_remkf) {
+DECL_COMMAND_COMPLETION(p2sm_cam_path_remkf) {
 	for (auto const &state : camera->states) {
 		if (items.size() == COMMAND_COMPLETION_MAXITEMS) {
 			break;
@@ -770,10 +769,10 @@ DECL_COMMAND_COMPLETION(sar_cam_path_remkf) {
 }
 
 CON_COMMAND_F_COMPLETION(
-	sar_cam_path_remkf,
-	"sar_cam_path_remkf <frame> - removes camera path keyframe at specified frame\n",
+	p2sm_cam_path_remkf,
+	"p2sm_cam_path_remkf <frame> - removes camera path keyframe at specified frame\n",
 	0,
-	AUTOCOMPLETION_FUNCTION(sar_cam_path_remkf)) {
+	AUTOCOMPLETION_FUNCTION(p2sm_cam_path_remkf)) {
 	if (!engine->demoplayer->IsPlaying())
 		return console->Print("Cinematic mode cannot be used outside of demo player.\n");
 
@@ -786,11 +785,11 @@ CON_COMMAND_F_COMPLETION(
 			console->Print("This keyframe does not exist.\n");
 		}
 	} else {
-		return console->Print(sar_cam_path_remkf.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cam_path_remkf.ThisPtr()->m_pszHelpString);
 	}
 }
 
-CON_COMMAND(sar_cam_path_remkfs, "sar_cam_path_remkfs - removes all camera path keyframes\n") {
+CON_COMMAND(p2sm_cam_path_remkfs, "p2sm_cam_path_remkfs - removes all camera path keyframes\n") {
 	if (!engine->demoplayer->IsPlaying())
 		return console->Print("Cinematic mode cannot be used outside of demo player.\n");
 
@@ -798,18 +797,18 @@ CON_COMMAND(sar_cam_path_remkfs, "sar_cam_path_remkfs - removes all camera path 
 		camera->states.clear();
 		console->Print("All camera path keyframes have been removed.\n");
 	} else {
-		return console->Print(sar_cam_path_remkfs.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cam_path_remkfs.ThisPtr()->m_pszHelpString);
 	}
 }
 
-CON_COMMAND(sar_cam_path_goto, "sar_cam_path_goto <frame> [skipto] - sends the camera to a specified frame of the camera path. If skipto is 1, goto the tick in the demo.\n") {
+CON_COMMAND(p2sm_cam_path_goto, "p2sm_cam_path_goto <frame> [skipto] - sends the camera to a specified frame of the camera path. If skipto is 1, goto the tick in the demo.\n") {
 	if (args.ArgC() < 2) {
-		return console->Print(sar_cam_path_goto.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cam_path_goto.ThisPtr()->m_pszHelpString);
 	}
 	
 	if (camera->controlType != Drive) {
 		console->Print("Camera not in drive mode! Switching.\n");
-		sar_cam_control.SetValue(CameraControlType::Drive);
+		p2sm_cam_control.SetValue(CameraControlType::Drive);
 	}
 
 	int i = std::atoi(args[1]);
@@ -834,15 +833,15 @@ CON_COMMAND(sar_cam_path_goto, "sar_cam_path_goto <frame> [skipto] - sends the c
 
 }
 
-CON_COMMAND(sar_cam_path_export, 
-	"sar_cam_path_export <filename> [format] [framerate] - exports current camera path to a given file in given format.\n"
+CON_COMMAND(p2sm_cam_path_export, 
+	"p2sm_cam_path_export <filename> [format] [framerate] - exports current camera path to a given file in given format.\n"
 	"Available formats:\n"
 	"kf - default, exports commands that can be used to recreate camera path. Does not use rate parameter.\n"
 	"raw - exports a dump of raw camera position for each frame in given framerate (60 by default).\n"
 	"davinci - exports a script for DaVinci Resolve's Camera 3D Fusion component based on raw camera dump.\n"
 ) {
 	if (args.ArgC() < 2 || args.ArgC() > 4) {
-		return console->Print(sar_cam_path_export.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cam_path_export.ThisPtr()->m_pszHelpString);
 	}
 
 	if (camera->states.size() == 0) {
@@ -867,11 +866,11 @@ CON_COMMAND(sar_cam_path_export,
 
 	if (format == "kf") {
 		// dump keyframes commands
-		file << "sar_cam_path_remkfs\n";
-		file << Utils::ssprintf("sar_cam_path_interp %d\n", sar_cam_path_interp.GetInt());
+		file << "p2sm_cam_path_remkfs\n";
+		file << Utils::ssprintf("p2sm_cam_path_interp %d\n", p2sm_cam_path_interp.GetInt());
 		for (auto const &state : camera->states) {
 			CameraState cam = state.second;
-			file << Utils::ssprintf("sar_cam_path_setkf %d %f %f %f %f %f %f %f\n", state.first, cam.origin.x, cam.origin.y, cam.origin.z, cam.angles.x, cam.angles.y, cam.angles.z, cam.fov);
+			file << Utils::ssprintf("p2sm_cam_path_setkf %d %f %f %f %f %f %f %f\n", state.first, cam.origin.x, cam.origin.y, cam.origin.z, cam.angles.x, cam.angles.y, cam.angles.z, cam.fov);
 		}
 	} else if (format == "raw" || format == "davinci") {
 		// dump raw interpolated camera positions 
@@ -926,10 +925,10 @@ CON_COMMAND(sar_cam_path_export,
 }
 
 
-CON_COMMAND(sar_cam_setang, "sar_cam_setang <pitch> <yaw> [roll] - sets camera angle (requires camera Drive Mode)\n") {
+CON_COMMAND(p2sm_cam_setang, "p2sm_cam_setang <pitch> <yaw> [roll] - sets camera angle (requires camera Drive Mode)\n") {
 	if (camera->controlType != Drive) {
 		console->Print("Camera not in drive mode! Switching.\n");
-		sar_cam_control.SetValue(CameraControlType::Drive);
+		p2sm_cam_control.SetValue(CameraControlType::Drive);
 	}
 
 	if (args.ArgC() == 3 || args.ArgC() == 4) {
@@ -941,14 +940,14 @@ CON_COMMAND(sar_cam_setang, "sar_cam_setang <pitch> <yaw> [roll] - sets camera a
 		camera->currentState.angles.y = angles[1];
 		camera->currentState.angles.z = angles[2];
 	} else {
-		return console->Print(sar_cam_setang.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cam_setang.ThisPtr()->m_pszHelpString);
 	}
 }
 
-CON_COMMAND(sar_cam_setpos, "sar_cam_setpos <x> <y> <z> - sets camera position (requires camera Drive Mode)\n") {
+CON_COMMAND(p2sm_cam_setpos, "p2sm_cam_setpos <x> <y> <z> - sets camera position (requires camera Drive Mode)\n") {
 	if (camera->controlType != Drive) {
 		console->Print("Camera not in drive mode! Switching.\n");
-		sar_cam_control.SetValue(CameraControlType::Drive);
+		p2sm_cam_control.SetValue(CameraControlType::Drive);
 	}
 
 	if (args.ArgC() == 4) {
@@ -960,30 +959,30 @@ CON_COMMAND(sar_cam_setpos, "sar_cam_setpos <x> <y> <z> - sets camera position (
 		camera->currentState.origin.y = pos[1];
 		camera->currentState.origin.z = pos[2];
 	} else {
-		return console->Print(sar_cam_setpos.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cam_setpos.ThisPtr()->m_pszHelpString);
 	}
 }
 
-CON_COMMAND(sar_cam_setfov, "sar_cam_setfov <fov> - sets camera field of view (requires camera Drive Mode)\n") {
+CON_COMMAND(p2sm_cam_setfov, "p2sm_cam_setfov <fov> - sets camera field of view (requires camera Drive Mode)\n") {
 	if (camera->controlType != Drive) {
 		console->Print("Camera not in drive mode! Switching.\n");
-		sar_cam_control.SetValue(CameraControlType::Drive);
+		p2sm_cam_control.SetValue(CameraControlType::Drive);
 	}
 
 	if (args.ArgC() == 2) {
 		float fov = (float)std::atof(args[1]);
 		camera->currentState.fov = fov;
 	} else {
-		return console->Print(sar_cam_setfov.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cam_setfov.ThisPtr()->m_pszHelpString);
 	}
 }
 
-CON_COMMAND(sar_cam_reset, "sar_cam_reset - resets camera to its default position\n") {
+CON_COMMAND(p2sm_cam_reset, "p2sm_cam_reset - resets camera to its default position\n") {
 	if (args.ArgC() == 1) {
 		if (camera->controlType == Drive) {
 			camera->RequestCameraRefresh();
 		}
 	} else {
-		return console->Print(sar_cam_reset.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cam_reset.ThisPtr()->m_pszHelpString);
 	}
 }

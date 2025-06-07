@@ -54,11 +54,11 @@ ON_EVENT(PRE_TICK) {
 	if (!server->IsRestoring()) {
 		if (!event.simulating && !pauseTimer->IsActive()) {
 			pauseTimer->Start();
-			g_timePauses = sar_speedrun_time_pauses.GetBool();
+			g_timePauses = p2sm_speedrun_time_pauses.GetBool();
 		} else if (event.simulating && pauseTimer->IsActive()) {
 			pauseTimer->Stop();
 			console->DevMsg("Paused for %d non-simulated ticks.\n", pauseTimer->GetTotal());
-			g_timePauses = sar_speedrun_time_pauses.GetBool();
+			g_timePauses = p2sm_speedrun_time_pauses.GetBool();
 		}
 	}
 

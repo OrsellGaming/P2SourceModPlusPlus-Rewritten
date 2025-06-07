@@ -10,7 +10,7 @@
 
 #include <cstring>
 
-Variable sar_debug_listener("sar_debug_listener", "0", "Prints event data of registered listener.\n");
+Variable p2sm_debug_listener("p2sm_debug_listener", "0", "Prints event data of registered listener.\n");
 
 static const char *EVENTS[] = {
 	"player_spawn_blue",
@@ -63,7 +63,7 @@ void Listener::FireGameEvent(IGameEvent *ev) {
 		return;
 	}
 
-	if (sar_debug_listener.GetBool()) {
+	if (p2sm_debug_listener.GetBool()) {
 		console->Print("[%i] Event fired: %s\n", session->GetTick(), ev->GetName());
 		if (engine->ConPrintEvent) {
 			engine->ConPrintEvent(engine->s_GameEventManager->ThisPtr(), ev);
@@ -87,7 +87,7 @@ void Listener::OnCheatsChanged(IConVar *pVar, const char *pOldString, float flOl
 
 // Commands
 
-CON_COMMAND(sar_dump_events, "sar_dump_events - dumps all registered game events of the game event manager\n") {
+CON_COMMAND(p2sm_dump_events, "p2sm_dump_events - dumps all registered game events of the game event manager\n") {
 	if (!engine->s_GameEventManager) {
 		return;
 	}

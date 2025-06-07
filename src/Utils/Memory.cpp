@@ -156,7 +156,7 @@ uintptr_t Memory::Scan(const char *moduleName, const char *pattern, int offset) 
 #ifdef _WIN32
 		if (IsDebuggerPresent()) DebugBreak();
 #else
-#ifdef SAR_DEV_BUILD
+#ifdef P2SM_DEV_BUILD
 		raise(SIGTRAP);
 #endif
 #endif

@@ -32,11 +32,11 @@
 #define BAR_CPS_BEGIN 10
 #define BAR_CPS_END 45
 
-Variable sar_scrollspeed("sar_scrollspeed", "0", "Show a HUD indicating your scroll speed for coop.\n1 = bar and tiles,\n2 = bar only,\n3 = tiles only.\n");
-Variable sar_scrollspeed_x("sar_scrollspeed_x", "0", "Scroll speed HUD x offset.\n");
-Variable sar_scrollspeed_y("sar_scrollspeed_y", "210", "Scroll speed HUD y offset.\n");
-Variable sar_scrollspeed_bar_x("sar_scrollspeed_bar_x", "30", "Scroll speed bar x offset.\n");
-Variable sar_scrollspeed_bar_y("sar_scrollspeed_bar_y", "210", "Scroll speed bar y offset.\n");
+Variable p2sm_scrollspeed("p2sm_scrollspeed", "0", "Show a HUD indicating your scroll speed for coop.\n1 = bar and tiles,\n2 = bar only,\n3 = tiles only.\n");
+Variable p2sm_scrollspeed_x("p2sm_scrollspeed_x", "0", "Scroll speed HUD x offset.\n");
+Variable p2sm_scrollspeed_y("p2sm_scrollspeed_y", "210", "Scroll speed HUD y offset.\n");
+Variable p2sm_scrollspeed_bar_x("p2sm_scrollspeed_bar_x", "30", "Scroll speed bar x offset.\n");
+Variable p2sm_scrollspeed_bar_y("p2sm_scrollspeed_bar_y", "210", "Scroll speed bar y offset.\n");
 
 
 int g_jumpTicks[2][MAX_INPUT_LINES][MAX_CONSECUTIVE_SCROLL_INPUTS];
@@ -54,7 +54,7 @@ int g_averageLastIndex[2];
 int g_averageSize[2];
 
 bool ScrollSpeedHud::ShouldDraw() {
-	return Hud::ShouldDraw() && sar_scrollspeed.GetBool();
+	return Hud::ShouldDraw() && p2sm_scrollspeed.GetBool();
 }
 
 void clear(int slot) {
@@ -212,11 +212,11 @@ void DrawAverageBar(int slot, Vector2<int> hudOffset) {
 
 void ScrollSpeedHud::Paint(int slot) {
 	unsigned long font = scheme->GetFontByID(TILE_TEXT_FONT_ID);
-	if (sar_scrollspeed.GetInt() != 2) {
-		DrawScrollTiles(slot, font, Vector2(sar_scrollspeed_x.GetInt(), sar_scrollspeed_y.GetInt()));
+	if (p2sm_scrollspeed.GetInt() != 2) {
+		DrawScrollTiles(slot, font, Vector2(p2sm_scrollspeed_x.GetInt(), p2sm_scrollspeed_y.GetInt()));
 	}
-	if (sar_scrollspeed.GetInt() != 3) {
-		DrawAverageBar(slot, Vector2(sar_scrollspeed_bar_x.GetInt(), sar_scrollspeed_bar_y.GetInt()));
+	if (p2sm_scrollspeed.GetInt() != 3) {
+		DrawAverageBar(slot, Vector2(p2sm_scrollspeed_bar_x.GetInt(), p2sm_scrollspeed_bar_y.GetInt()));
 	}
 }
 
@@ -244,14 +244,14 @@ void ScrollSpeedHud::OnJump(int slot, bool grounded) {
 }
 
 ON_EVENT(SESSION_START) {
-	if (sar_scrollspeed.GetBool()) {
+	if (p2sm_scrollspeed.GetBool()) {
 		if (g_jumpCounter[0]) clear(0);
 		if (g_jumpCounter[1]) clear(1);
 	}
 }
 
 ON_EVENT(PROCESS_MOVEMENT) {
-	if (!sar_scrollspeed.GetBool()) {
+	if (!p2sm_scrollspeed.GetBool()) {
 		if (g_jumpCounter[event.slot]) clear(event.slot);
 		return;
 	}

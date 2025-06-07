@@ -11,11 +11,11 @@
 
 #include <thread>
 
-#define SAR_BUILT __TIME__ " " __DATE__
+#define P2SM_BUILT __TIME__ " " __DATE__
 
 #define SAFE_UNLOAD_TICK_DELAY 33
 
-class SAR : public IServerPluginCallbacks {
+class P2SM : public IServerPluginCallbacks {
 public:
 	Modules *modules;
 	Features *features;
@@ -54,4 +54,4 @@ public:
 	void SearchPlugin();
 };
 
-extern SAR sar;
+extern P2SM p2sm;

@@ -6,18 +6,18 @@
 #include "Modules/Engine.hpp"
 
 
-Variable sar_allow_resizing_window("sar_allow_resizing_window", "0", 0, 1, "EXPERIMENTAL! Forces resizing on game's window.\n");
+Variable p2sm_allow_resizing_window("p2sm_allow_resizing_window", "0", 0, 1, "EXPERIMENTAL! Forces resizing on game's window.\n");
 
 #ifdef _WIN32
 static HWND g_windowHandle = NULL;
 #endif
 
 ON_EVENT(FRAME) {
-	if (!sar_allow_resizing_window.GetBool()) return;
+	if (!p2sm_allow_resizing_window.GetBool()) return;
 
 #ifndef _WIN32
-	console->Print("sar_allow_resizing_window is currently working for Windows only.");
-	sar_allow_resizing_window.SetValue(0);
+	console->Print("p2sm_allow_resizing_window is currently working for Windows only.");
+	p2sm_allow_resizing_window.SetValue(0);
 #endif
 
 	static int pos_x, pos_y;

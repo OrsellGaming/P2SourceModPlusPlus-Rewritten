@@ -214,6 +214,6 @@ extern Variable ss_pipscale;
 extern Variable ss_verticalsplit;
 extern Variable cl_viewmodelfov;
 
-extern Command sar_workshop_skip;
+extern Command p2sm_workshop_skip;
 
 extern Color SARUTIL_Portal_Color(int iPortal, int iTeamNumber);

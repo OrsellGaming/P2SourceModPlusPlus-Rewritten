@@ -11,7 +11,6 @@
 #endif
 
 #include "Cheats.hpp"
-#include "Checksum.hpp"
 #include "Command.hpp"
 #include "CrashHandler.hpp"
 #include "Event.hpp"
@@ -24,11 +23,11 @@
 #include "Modules.hpp"
 #include "Variable.hpp"
 
-SAR sar;
-EXPOSE_SINGLE_INTERFACE_GLOBALVAR(SAR, IServerPluginCallbacks, INTERFACEVERSION_ISERVERPLUGINCALLBACKS, sar);
+P2SM p2sm;
+EXPOSE_SINGLE_INTERFACE_GLOBALVAR(P2SM, IServerPluginCallbacks, INTERFACEVERSION_ISERVERPLUGINCALLBACKS, p2sm);
 
 
-bool SAR::Load(CreateInterfaceFn interfaceFactory, CreateInterfaceFn gameServerFactory) {
+bool P2SM::Load(CreateInterfaceFn interfaceFactory, CreateInterfaceFn gameServerFactory) {
 	console = new Console();
 	if (!console->Init())
 		return false;
@@ -43,11 +42,11 @@ bool SAR::Load(CreateInterfaceFn interfaceFactory, CreateInterfaceFn gameServerF
 	// The auto-updater can create this file on Windows; we should try
 	// to delete it.
 	try {
-		if (std::filesystem::exists("sar.dll.old-auto")) {
-			std::filesystem::remove("sar.dll.old-auto");
+		if (std::filesystem::exists("p2sm.dll.old-auto")) {
+			std::filesystem::remove("p2sm.dll.old-auto");
 		}
-		if (std::filesystem::exists("sar.pdb.old-auto")) {
-			std::filesystem::remove("sar.pdb.old-auto");
+		if (std::filesystem::exists("p2sm.pdb.old-auto")) {
+			std::filesystem::remove("p2sm.pdb.old-auto");
 		}
 	} catch (...) {
 	}
@@ -131,7 +130,7 @@ bool SAR::Load(CreateInterfaceFn interfaceFactory, CreateInterfaceFn gameServerF
 
 				this->SearchPlugin();
 
-				console->PrintActive("Loaded SourceAutoRecord, Version %s\n", SAR_VERSION);
+				console->PrintActive("Loaded SourceAutoRecord, Version %s\n", P2SM_VERSION);
 
 				SeasonalASCII::Init();
 
@@ -148,28 +147,28 @@ bool SAR::Load(CreateInterfaceFn interfaceFactory, CreateInterfaceFn gameServerF
 
 	console->Warning("SAR: Failed to load SourceAutoRecord!\n");
 
-	if (sar.cheats) {
-		sar.cheats->Shutdown();
+	if (p2sm.cheats) {
+		p2sm.cheats->Shutdown();
 	}
-	if (sar.features) {
-		sar.features->DeleteAll();
-	}
-
-	if (sar.modules) {
-		sar.modules->ShutdownAll();
+	if (p2sm.features) {
+		p2sm.features->DeleteAll();
 	}
 
-	// This isn't in sar.modules
+	if (p2sm.modules) {
+		p2sm.modules->ShutdownAll();
+	}
+
+	// This isn't in p2sm.modules
 	if (tier1) {
 		tier1->Shutdown();
 	}
 
 	Variable::ClearAllCallbacks();
-	SAFE_DELETE(sar.features)
-	SAFE_DELETE(sar.cheats)
-	SAFE_DELETE(sar.modules)
-	SAFE_DELETE(sar.plugin)
-	SAFE_DELETE(sar.game)
+	SAFE_DELETE(p2sm.features)
+	SAFE_DELETE(p2sm.cheats)
+	SAFE_DELETE(p2sm.modules)
+	SAFE_DELETE(p2sm.plugin)
+	SAFE_DELETE(p2sm.game)
 	SAFE_DELETE(tier1)
 	SAFE_DELETE(console)
 	CrashHandler::Cleanup();
@@ -178,7 +177,7 @@ bool SAR::Load(CreateInterfaceFn interfaceFactory, CreateInterfaceFn gameServerF
 
 // SAR has to disable itself in the plugin list or the game might crash because of missing callbacks
 // This is a race condition though
-bool SAR::GetPlugin() {
+bool P2SM::GetPlugin() {
 	if (!engine) return false;
 	auto s_ServerPlugin = reinterpret_cast<uintptr_t>(engine->s_ServerPlugin->ThisPtr());
 	auto m_Size = *reinterpret_cast<int *>(s_ServerPlugin + CServerPlugin_m_Size);
@@ -186,7 +185,7 @@ bool SAR::GetPlugin() {
 		auto m_Plugins = *reinterpret_cast<uintptr_t *>(s_ServerPlugin + CServerPlugin_m_Plugins);
 		for (auto i = 0; i < m_Size; ++i) {
 			auto ptr = *reinterpret_cast<CPlugin **>(m_Plugins + sizeof(uintptr_t) * i);
-			if (!std::strcmp(ptr->m_szName, SAR_PLUGIN_SIGNATURE)) {
+			if (!std::strcmp(ptr->m_szName, P2SM_PLUGIN_SIGNATURE)) {
 				this->plugin->ptr = ptr;
 				this->plugin->index = i;
 				return true;
@@ -195,7 +194,7 @@ bool SAR::GetPlugin() {
 	}
 	return false;
 }
-void SAR::SearchPlugin() {
+void P2SM::SearchPlugin() {
 	this->findPluginThread = std::thread([this]() {
 		GO_THE_FUCK_TO_SLEEP(1000);
 		if (this->GetPlugin()) {
@@ -207,14 +206,14 @@ void SAR::SearchPlugin() {
 	this->findPluginThread.detach();
 }
 
-void SAR::Unload() {
+void P2SM::Unload() {
 	if (unloading) return;
 	unloading = true;
 
 	curl_global_cleanup();
 	if (statsCounter) {
 		statsCounter->RecordData(session->GetTick());
-		statsCounter->ExportToFile(sar_statcounter_filePath.GetString());
+		statsCounter->ExportToFile(p2sm_statcounter_filePath.GetString());
 	}
 
 	networkManager.Disconnect();
@@ -223,33 +222,33 @@ void SAR::Unload() {
 
 	Hook::DisableAll();
 
-	if (sar.cheats) {
-		sar.cheats->Shutdown();
+	if (p2sm.cheats) {
+		p2sm.cheats->Shutdown();
 	}
-	if (sar.features) {
-		sar.features->DeleteAll();
+	if (p2sm.features) {
+		p2sm.features->DeleteAll();
 	}
 
-	if (sar.GetPlugin()) {
+	if (p2sm.GetPlugin()) {
 		// SAR has to unhook CEngine some ticks before unloading the module
-		auto unload = std::string("plugin_unload ") + std::to_string(sar.plugin->index);
+		auto unload = std::string("plugin_unload ") + std::to_string(p2sm.plugin->index);
 		engine->SendToCommandBuffer(unload.c_str(), SAFE_UNLOAD_TICK_DELAY);
 	}
 
-	if (sar.modules) {
-		sar.modules->ShutdownAll();
+	if (p2sm.modules) {
+		p2sm.modules->ShutdownAll();
 	}
 
-	// This isn't in sar.modules
+	// This isn't in p2sm.modules
 	if (tier1) {
 		tier1->Shutdown();
 	}
 
-	SAFE_DELETE(sar.features)
-	SAFE_DELETE(sar.cheats)
-	SAFE_DELETE(sar.modules)
-	SAFE_DELETE(sar.plugin)
-	SAFE_DELETE(sar.game)
+	SAFE_DELETE(p2sm.features)
+	SAFE_DELETE(p2sm.cheats)
+	SAFE_DELETE(p2sm.modules)
+	SAFE_DELETE(p2sm.plugin)
+	SAFE_DELETE(p2sm.game)
 
 	if (console) {
 		console->Print("Cya :)\n");
@@ -260,7 +259,7 @@ void SAR::Unload() {
 	CrashHandler::Cleanup();
 }
 
-CON_COMMAND(sar_session, "sar_session - prints the current tick of the server since it has loaded\n") {
+CON_COMMAND(p2sm_session, "p2sm_session - prints the current tick of the server since it has loaded\n") {
 	auto tick = session->GetTick();
 	console->Print("Session Tick: %i (%.3f)\n", tick, engine->ToTime(tick));
 	if (*engine->demorecorder->m_bRecording) {
@@ -272,25 +271,25 @@ CON_COMMAND(sar_session, "sar_session - prints the current tick of the server si
 		console->Print("Demo Player Tick: %i (%.3f)\n", tick, engine->ToTime(tick));
 	}
 }
-CON_COMMAND(sar_about, "sar_about - prints info about SAR plugin\n") {
+CON_COMMAND(p2sm_about, "p2sm_about - prints info about SAR plugin\n") {
 	console->Print("SourceAutoRecord is a speedrun plugin for Source Engine games.\n");
 	console->Print("More information at: https://github.com/p2sr/SourceAutoRecord or https://wiki.portal2.sr/SAR\n");
-	console->Print("Game: %s\n", sar.game->Version());
-	console->Print("Version: " SAR_VERSION "\n");
-	console->Print("Built: " SAR_BUILT "\n");
+	console->Print("Game: %s\n", p2sm.game->Version());
+	console->Print("Version: " P2SM_VERSION "\n");
+	console->Print("Built: " P2SM_BUILT "\n");
 }
-CON_COMMAND(sar_cvars_dump, "sar_cvars_dump [all|game|sar] - dumps all cvars to a file\n") {
+CON_COMMAND(p2sm_cvars_dump, "p2sm_cvars_dump [all|game|p2sm] - dumps all cvars to a file\n") {
 	auto filter = 1;
 	if (args.ArgC() == 2) {
 		if (!strcmp(args[1], "all")) filter = 0;
 		else if (!strcmp(args[1], "game")) filter = 1;
-		else if (!strcmp(args[1], "sar")) filter = 2;
+		else if (!strcmp(args[1], "p2sm")) filter = 2;
 		else console->Print("Invalid argument!\n");
 	}
 	std::string path = "cvars_";
 	if (filter == 0) path += "all";
 	if (filter == 1) path += "game";
-	if (filter == 2) path += "sar";
+	if (filter == 2) path += "p2sm";
 	path += ".json";
 	auto filepath = fileSystem->FindFileSomewhere(path).value_or(path);
 	std::ofstream file(filepath);
@@ -303,7 +302,7 @@ CON_COMMAND(sar_cvars_dump, "sar_cvars_dump [all|game|sar] - dumps all cvars to 
 
 	console->Print("Dumped %i cvars to %s\n", result, path.c_str());
 }
-CON_COMMAND(sar_cvars_dump_doc, "sar_cvars_dump_doc - dumps all SAR cvars to a file\n") {
+CON_COMMAND(p2sm_cvars_dump_doc, "p2sm_cvars_dump_doc - dumps all SAR cvars to a file\n") {
 	auto filepath = fileSystem->FindFileSomewhere("cvars.md").value_or("cvars.md");
 	std::ofstream file(filepath, std::ios::out | std::ios::trunc | std::ios::binary);
 	if (!file.is_open()) {
@@ -315,18 +314,18 @@ CON_COMMAND(sar_cvars_dump_doc, "sar_cvars_dump_doc - dumps all SAR cvars to a f
 
 	console->Print("Dumped %i cvars to cvars.md!\n", result);
 }
-CON_COMMAND(sar_cvars_lock, "sar_cvars_lock - restores default flags of unlocked cvars\n") {
+CON_COMMAND(p2sm_cvars_lock, "p2sm_cvars_lock - restores default flags of unlocked cvars\n") {
 	cvars->Lock();
 }
-CON_COMMAND(sar_cvars_unlock, "sar_cvars_unlock - unlocks all special cvars\n") {
+CON_COMMAND(p2sm_cvars_unlock, "p2sm_cvars_unlock - unlocks all special cvars\n") {
 	cvars->Unlock();
 }
-CON_COMMAND(sar_cvarlist, "sar_cvarlist - lists all SAR cvars and unlocked engine cvars\n") {
+CON_COMMAND(p2sm_cvarlist, "p2sm_cvarlist - lists all SAR cvars and unlocked engine cvars\n") {
 	cvars->ListAll();
 }
-CON_COMMAND(sar_rename, "sar_rename <name> - changes your name\n") {
+CON_COMMAND(p2sm_rename, "p2sm_rename <name> - changes your name\n") {
 	if (args.ArgC() != 2) {
-		return console->Print(sar_rename.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_rename.ThisPtr()->m_pszHelpString);
 	}
 
 	Variable name("name");
@@ -336,51 +335,51 @@ CON_COMMAND(sar_rename, "sar_rename <name> - changes your name\n") {
 		name.EnableChange();
 	}
 }
-CON_COMMAND(sar_exit, "sar_exit - removes all function hooks, registered commands and unloads the module\n") {
-	sar.Unload();
+CON_COMMAND(p2sm_exit, "p2sm_exit - removes all function hooks, registered commands and unloads the module\n") {
+	p2sm.Unload();
 }
 
 #pragma region Unused callbacks
-void SAR::Pause() {
+void P2SM::Pause() {
 }
-void SAR::UnPause() {
+void P2SM::UnPause() {
 }
-const char *SAR::GetPluginDescription() {
-	return SAR_PLUGIN_SIGNATURE;
+const char *P2SM::GetPluginDescription() {
+	return P2SM_PLUGIN_SIGNATURE;
 }
-void SAR::LevelInit(char const *pMapName) {
+void P2SM::LevelInit(char const *pMapName) {
 }
-void SAR::ServerActivate(void *pEdictList, int edictCount, int clientMax) {
+void P2SM::ServerActivate(void *pEdictList, int edictCount, int clientMax) {
 }
-void SAR::GameFrame(bool simulating) {
+void P2SM::GameFrame(bool simulating) {
 }
-void SAR::LevelShutdown() {
+void P2SM::LevelShutdown() {
 }
-void SAR::ClientFullyConnect(void *pEdict) {
+void P2SM::ClientFullyConnect(void *pEdict) {
 }
-void SAR::ClientActive(void *pEntity) {
+void P2SM::ClientActive(void *pEntity) {
 }
-void SAR::ClientDisconnect(void *pEntity) {
+void P2SM::ClientDisconnect(void *pEntity) {
 }
-void SAR::ClientPutInServer(void *pEntity, char const *playername) {
+void P2SM::ClientPutInServer(void *pEntity, char const *playername) {
 }
-void SAR::SetCommandClient(int index) {
+void P2SM::SetCommandClient(int index) {
 }
-void SAR::ClientSettingsChanged(void *pEdict) {
+void P2SM::ClientSettingsChanged(void *pEdict) {
 }
-int SAR::ClientConnect(bool *bAllowConnect, void *pEntity, const char *pszName, const char *pszAddress, char *reject, int maxrejectlen) {
+int P2SM::ClientConnect(bool *bAllowConnect, void *pEntity, const char *pszName, const char *pszAddress, char *reject, int maxrejectlen) {
 	return 0;
 }
-int SAR::ClientCommand(void *pEntity, const void *&args) {
+int P2SM::ClientCommand(void *pEntity, const void *&args) {
 	return 0;
 }
-int SAR::NetworkIDValidated(const char *pszUserName, const char *pszNetworkID) {
+int P2SM::NetworkIDValidated(const char *pszUserName, const char *pszNetworkID) {
 	return 0;
 }
-void SAR::OnQueryCvarValueFinished(int iCookie, void *pPlayerEntity, int eStatus, const char *pCvarName, const char *pCvarValue) {
+void P2SM::OnQueryCvarValueFinished(int iCookie, void *pPlayerEntity, int eStatus, const char *pCvarName, const char *pCvarValue) {
 }
-void SAR::OnEdictAllocated(void *edict) {
+void P2SM::OnEdictAllocated(void *edict) {
 }
-void SAR::OnEdictFreed(const void *edict) {
+void P2SM::OnEdictFreed(const void *edict) {
 }
 #pragma endregion

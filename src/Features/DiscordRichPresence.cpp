@@ -2,17 +2,14 @@
 #include "Event.hpp"
 #include "Modules/Engine.hpp"
 #include "Modules/Server.hpp"
-#include "Tas/TasPlayer.hpp"
 #include "Session.hpp"
-#include "Speedrun/SpeedrunTimer.hpp"
 #include "Timer/PauseTimer.hpp"
-#include "Renderer.hpp"
 
 #include "discord-rpc/discord_register.h"
 #include "discord-rpc/discord_rpc.h"
 
-static Variable sar_discord_rpc_enabled("sar_discord_rpc_enabled", "0", 0, 1, "Enables Discord Rich Presence integration.\n");
-static Variable sar_discord_rpc_app_id("sar_discord_rpc_app_id", "1084419823737524294", "Defines Discord Rich Presence's application ID.\n", 0);
+static Variable p2sm_discord_rpc_enabled("p2sm_discord_rpc_enabled", "0", 0, 1, "Enables Discord Rich Presence integration.\n");
+static Variable p2sm_discord_rpc_app_id("p2sm_discord_rpc_app_id", "1084419823737524294", "Defines Discord Rich Presence's application ID.\n", 0);
 
 static bool g_discordRpcInitialized;
 static std::string g_activeTasScriptThisSession;
@@ -54,7 +51,6 @@ static void UpdateDiscordRichPresence() {
 
 	rp.startTimestamp = g_gameStartTimestamp;
 	
-	categoryName = SpeedrunTimer::GetCategoryName();
 	cmAttemptsString = Utils::ssprintf("Attempts: %d", g_challengeModeAttempts);
 
 	if (!session->isRunning) {
@@ -66,25 +62,8 @@ static void UpdateDiscordRichPresence() {
 		rp.largeImageKey = "menu";
 		rp.largeImageText = "In menu";
 	} else {
-		// rendering
-		if (Renderer::IsRunning()) {
-			if (engine->demoplayer->IsPlaying()) {
-				rp.details = "Rendering Demo";
-				rp.state = engine->demoplayer->DemoName;
-			} else if (g_activeTasScriptThisSession.length() > 0) {
-				rp.details = "Rendering TAS";
-				rp.state = g_activeTasScriptThisSession.c_str();
-			} else {
-				rp.details = "Rendering";
-			}
-		}
-		// tas player
-		else if (g_activeTasScriptThisSession.length() > 0) {
-			rp.details = "TAS-ing";
-			rp.state = g_activeTasScriptThisSession.c_str();
-		}
 		// demo player
-		else if(engine->demoplayer->IsPlaying()) {
+		if(engine->demoplayer->IsPlaying()) {
 			rp.details = "Playing Demo";
 			rp.state = engine->demoplayer->DemoName;
 		}
@@ -93,11 +72,7 @@ static void UpdateDiscordRichPresence() {
 			rp.details = "Challenge Mode";
 			rp.state = cmAttemptsString.c_str();
 		} 
-		// speedrun timer
-		else if(SpeedrunTimer::IsRunning()) {
-			rp.details = "Speedrunning";
-			rp.state = categoryName.c_str();
-		}
+
 		// regular playback
 		else {
 			rp.details = "Playing";
@@ -138,9 +113,9 @@ ON_INIT {
 ON_EVENT(FRAME) {
 	static int lastExecutedPresence = 0;
 
-	if (sar_discord_rpc_enabled.GetBool() != g_discordRpcInitialized) {
+	if (p2sm_discord_rpc_enabled.GetBool() != g_discordRpcInitialized) {
 		if (!g_discordRpcInitialized) {
-			Discord_Initialize(sar_discord_rpc_app_id.GetString(), &g_discordHandlers, 1, "");
+			Discord_Initialize(p2sm_discord_rpc_app_id.GetString(), &g_discordHandlers, 1, "");
 			lastExecutedPresence = 0;
 		} else {
 			Discord_Shutdown();
@@ -153,19 +128,13 @@ ON_EVENT(FRAME) {
 	int host, server, client;
 	engine->GetTicks(host, server, client);
 
-	if (host > lastExecutedPresence + sar.game->Tickrate()) {
+	if (host > lastExecutedPresence + p2sm.game->Tickrate()) {
 		lastExecutedPresence = host;
 		UpdateDiscordRichPresence();
 	}
 }
 
 ON_EVENT(SESSION_START) {
-	if (tasPlayer->IsActive()) {
-		g_activeTasScriptThisSession = tasPlayer->GetScriptName(0);
-	} else {
-		g_activeTasScriptThisSession = "";
-	}
-
 	if (sv_bonus_challenge.GetBool()) {
 		g_challengeModeAttempts++;
 	} else {
@@ -177,7 +146,7 @@ ON_EVENT(SESSION_END) {
 	g_activeTasScriptThisSession = "";
 }
 
-ON_EVENT(SAR_UNLOAD) {
+ON_EVENT(P2SM_UNLOAD) {
 	if (g_discordRpcInitialized) {
 		Discord_Shutdown();
 	}

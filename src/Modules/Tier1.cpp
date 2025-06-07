@@ -13,21 +13,21 @@ struct ConFilterRule {
 	std::string end;
 };
 
-static Variable sar_con_filter("sar_con_filter", "0", "Enable the console filter\n", FCVAR_DONTRECORD);
-static Variable sar_con_filter_default("sar_con_filter_default", "0", "Whether to allow text through the console filter by default\n", FCVAR_DONTRECORD);
-static Variable sar_con_filter_suppress_blank_lines("sar_con_filter_suppress_blank_lines", "0", "Whether to suppress blank lines in console\n", FCVAR_DONTRECORD);
+static Variable p2sm_con_filter("p2sm_con_filter", "0", "Enable the console filter\n", FCVAR_DONTRECORD);
+static Variable p2sm_con_filter_default("p2sm_con_filter_default", "0", "Whether to allow text through the console filter by default\n", FCVAR_DONTRECORD);
+static Variable p2sm_con_filter_suppress_blank_lines("p2sm_con_filter_suppress_blank_lines", "0", "Whether to suppress blank lines in console\n", FCVAR_DONTRECORD);
 static std::vector<ConFilterRule> g_con_filter_rules;
 
-CON_COMMAND(sar_con_filter_allow, "sar_con_filter_allow <string> [end] - add an allow rule to the console filter, allowing until 'end' is matched\n") {
+CON_COMMAND(p2sm_con_filter_allow, "p2sm_con_filter_allow <string> [end] - add an allow rule to the console filter, allowing until 'end' is matched\n") {
 	if (args.ArgC() != 2 && args.ArgC() != 3) {
-		return console->Print(sar_con_filter_allow.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_con_filter_allow.ThisPtr()->m_pszHelpString);
 	}
 	g_con_filter_rules.push_back({true, args[1], args.ArgC() == 3 ? args[2] : ""});
 }
 
-CON_COMMAND(sar_con_filter_block, "sar_con_filter_block <string> [end] - add a disallow rule to the console filter, blocking until 'end' is matched\n") {
+CON_COMMAND(p2sm_con_filter_block, "p2sm_con_filter_block <string> [end] - add a disallow rule to the console filter, blocking until 'end' is matched\n") {
 	if (args.ArgC() != 2 && args.ArgC() != 3) {
-		return console->Print(sar_con_filter_block.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_con_filter_block.ThisPtr()->m_pszHelpString);
 	}
 	g_con_filter_rules.push_back({false, args[1], args.ArgC() == 3 ? args[2] : ""});
 }
@@ -92,7 +92,7 @@ public:
 		}
 
 		if (MatchesFilters(str.c_str())) {
-			if (!IsNewline(str.c_str()) || !this->last_was_newline || !sar_con_filter_suppress_blank_lines.GetBool()) {
+			if (!IsNewline(str.c_str()) || !this->last_was_newline || !p2sm_con_filter_suppress_blank_lines.GetBool()) {
 				for (auto &b : this->buf) {
 					switch (b.type) {
 					case BufferedPart::Type::COL_PRINT:
@@ -119,8 +119,8 @@ public:
 	}
 
 	void DebugFilters() {
-		bool filter = sar_con_filter.GetBool();
-		sar_con_filter.SetValue("0");
+		bool filter = p2sm_con_filter.GetBool();
+		p2sm_con_filter.SetValue("0");
 		console->Print("Filter rules:\n");
 		for (auto &rule : g_con_filter_rules) {
 			console->Print("(%s) \"%s\" \"%s\"\n", rule.allow ? "allow" : "block", rule.str.c_str(), rule.end.c_str());
@@ -129,7 +129,7 @@ public:
 			auto rule = this->do_until_rule.value();
 			console->Print("current rule: (%s) \"%s\" \"%s\"\n", rule.allow ? "allow" : "block", rule.str.c_str(), rule.end.c_str());
 		}
-		sar_con_filter.SetValue(filter ? "1" : "0");
+		p2sm_con_filter.SetValue(filter ? "1" : "0");
 	}
 
 private:
@@ -139,7 +139,7 @@ private:
 	}
 
 	bool MatchesFilters(const char *msg) {
-		if (!sar_con_filter.isRegistered || !sar_con_filter.GetBool()) return true;
+		if (!p2sm_con_filter.isRegistered || !p2sm_con_filter.GetBool()) return true;
 
 		if (this->do_until_rule.has_value()) {
 			bool match = this->do_until_rule->allow;
@@ -158,7 +158,7 @@ private:
 			}
 		}
 
-		return sar_con_filter_default.GetBool();
+		return p2sm_con_filter_default.GetBool();
 	}
 
 	bool MatchesPattern(const char *str, const std::string &pat) {
@@ -211,16 +211,16 @@ ON_EVENT(FRAME) {
 	if (tier1->orig_display_func) g_con_display_hook.Flush();
 }
 
-CON_COMMAND(sar_con_filter_reset, "sar_con_filter_reset - clear the console filter rule list\n") {
+CON_COMMAND(p2sm_con_filter_reset, "p2sm_con_filter_reset - clear the console filter rule list\n") {
 	if (args.ArgC() != 1) {
-		return console->Print(sar_con_filter_reset.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_con_filter_reset.ThisPtr()->m_pszHelpString);
 	}
 	g_con_display_hook.ResetFilters();
 }
 
-CON_COMMAND(sar_con_filter_debug, "sar_con_filter_debug - print the console filter rule list\n") {
+CON_COMMAND(p2sm_con_filter_debug, "p2sm_con_filter_debug - print the console filter rule list\n") {
 	if (args.ArgC() != 1) {
-		return console->Print(sar_con_filter_debug.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_con_filter_debug.ThisPtr()->m_pszHelpString);
 	}
 	g_con_display_hook.DebugFilters();
 }

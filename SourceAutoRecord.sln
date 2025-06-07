@@ -35,7 +35,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "web", "web", "{C8813A51-458
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{B82DAA33-1051-496B-A05A-58BB70E8BC02}"
 	ProjectSection(SolutionItems) = preProject
-		docs\web\img\sar_logo.webp = docs\web\img\sar_logo.webp
+		docs\web\img\p2sm_logo.webp = docs\web\img\p2sm_logo.webp
 	EndProjectSection
 EndProject
 Global

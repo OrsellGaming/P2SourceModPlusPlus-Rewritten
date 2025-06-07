@@ -10,9 +10,9 @@
 
 #include <curl/curl.h>
 
-Variable sar_cheat_hud("sar_cheat_hud", "2", 0, 2, "Display a warning in the HUD when cheats are active. 0 = disable, 1 = display if sv_cheats off, 2 = display always\n");
-Variable sar_cheat_hud_x("sar_cheat_hud_x", "-4", "X position of the cheat warning HUD.\n", 0);
-Variable sar_cheat_hud_y("sar_cheat_hud_y", "4", "Y position of the cheat warning HUD.\n", 0);
+Variable p2sm_cheat_hud("p2sm_cheat_hud", "2", 0, 2, "Display a warning in the HUD when cheats are active. 0 = disable, 1 = display if sv_cheats off, 2 = display always\n");
+Variable p2sm_cheat_hud_x("p2sm_cheat_hud_x", "-4", "X position of the cheat warning HUD.\n", 0);
+Variable p2sm_cheat_hud_y("p2sm_cheat_hud_y", "4", "Y position of the cheat warning HUD.\n", 0);
 
 struct Cheat {
 	bool (*isActive)();
@@ -27,7 +27,7 @@ static Cheat g_cheats[] = {
 	}, "cheats are enabled", "run 'sv_cheats 0'" },
 
 	{ +[]() {
-		if (sar.game->Is(SourceGame_PortalReloaded)) return false;
+		if (p2sm.game->Is(SourceGame_PortalReloaded)) return false;
 		if (client->GetChallengeStatus() != CMStatus::CHALLENGE && !(engine->IsCoop() && !engine->IsSplitscreen())) return false;
 		return sv_cheats_flagged.GetBool();
 	}, "cheats were flagged in this session", "reload the game from the menu" },
@@ -58,19 +58,19 @@ static Cheat g_cheats[] = {
 
 	{ +[]() {
 		auto map = engine->GetCurrentMapName();
-		if (!sar.game->Is(SourceGame_Portal2 | SourceGame_Portal2_2011)) return false;
+		if (!p2sm.game->Is(SourceGame_Portal2 | SourceGame_Portal2_2011)) return false;
 		if (map == "sp_a2_bts5") return false;
 		if (engine->GetMapIndex(map) == -1) return false;
 		return sv_allow_mobile_portals.GetBool();
 	}, "mobile portals enabled", "set 'sv_allow_mobile_portals 0'" },
 
 	{ +[]() {
-		return fabsf(engine->GetIPT() - 1.0f / sar.game->Tickrate()) > 0.00001f;
+		return fabsf(engine->GetIPT() - 1.0f / p2sm.game->Tickrate()) > 0.00001f;
 	}, "tickrate is not default", "remove '-tickrate' from the game launch options" },
 
 	{ +[]() {
 		return g_update_status == 0;
-	}, "SAR is not up-to-date", "run 'sar_update'" }
+	}, "SAR is not up-to-date", "run 'p2sm_update'" }
 };
 
 class CheatWarnHud : public Hud {
@@ -83,7 +83,7 @@ public:
 		if (!Hud::ShouldDraw()) return false;
 		if (engine->demoplayer->IsPlaying()) return false;
 
-		switch (sar_cheat_hud.GetInt()) {
+		switch (p2sm_cheat_hud.GetInt()) {
 			case 0:
 				return false;
 			case 1:
@@ -149,10 +149,10 @@ public:
 		int scr_width, scr_height;
 		engine->GetScreenSize(nullptr, scr_width, scr_height);
 
-		int x = sar_cheat_hud_x.GetInt();
+		int x = p2sm_cheat_hud_x.GetInt();
 		if (x < 0) x += scr_width - width;
 
-		int y = sar_cheat_hud_y.GetInt();
+		int y = p2sm_cheat_hud_y.GetInt();
 		if (y < 0) y += scr_height - height;
 
 		surface->DrawRect(Color{0, 0, 0, 192}, x, y, x + width, y + height);
@@ -169,7 +169,7 @@ ON_INIT {
 	});
 }
 
-ON_EVENT(SAR_UNLOAD) {
+ON_EVENT(P2SM_UNLOAD) {
 	if (g_worker.joinable()) g_worker.join();
 }
 

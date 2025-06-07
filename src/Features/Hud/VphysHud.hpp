@@ -27,10 +27,10 @@ public:
 
 extern VphysHud vphysHud;
 
-extern Variable sar_vphys_hud;
-extern Variable sar_vphys_hud_x;
-extern Variable sar_vphys_hud_y;
+extern Variable p2sm_vphys_hud;
+extern Variable p2sm_vphys_hud_x;
+extern Variable p2sm_vphys_hud_y;
 
-extern Command sar_vphys_setgravity;
-extern Command sar_vphys_setangle;
-extern Command sar_vphys_setspin;
+extern Command p2sm_vphys_setgravity;
+extern Command p2sm_vphys_setangle;
+extern Command p2sm_vphys_setspin;

@@ -2,11 +2,11 @@
 
 <div align="center">
 
-[![SourceAutoRecord Homepage](docs/web/img/sar_logo.webp)](https://sar.portal2.sr/)
+[![SourceAutoRecord Homepage](docs/web/img/p2sm_logo.webp)](https://p2sm.portal2.sr/)
 
 </div>
 
-<div align="center">
+<div align="center">[Makefile](Makefile)
 
 [![CI](https://github.com/p2sr/SourceAutoRecord/workflows/CI/badge.svg)](https://github.com/p2sr/SourceAutoRecord/actions?query=workflow%3ACI+branch%3Amaster)
 [![CD](https://github.com/p2sr/SourceAutoRecord/workflows/CD/badge.svg)](https://github.com/p2sr/SourceAutoRecord/actions?query=workflow%3ACD+branch%3Amaster)
@@ -29,7 +29,7 @@ into the game for speedrunners and people alike.
 
 For features and installation instructions, please visit [the website].
 
-[the website]: https://sar.portal2.sr/
+[the website]: https://p2sm.portal2.sr/
 
 ## Support
 
@@ -58,7 +58,7 @@ The Beginner's Guide:
 
 The Stanley Parable:
 
-- `sar_cam_control` can easily crash (OOM when looking OOB)
+- `p2sm_cam_control` can easily crash (OOM when looking OOB)
 - Missing speedrun categories for now.
 
 ## Documentation

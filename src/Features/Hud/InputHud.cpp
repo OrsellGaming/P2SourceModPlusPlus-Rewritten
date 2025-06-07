@@ -13,13 +13,13 @@
 #include <cstring>
 #include <sstream>
 
-Variable sar_ihud("sar_ihud", "0", 0, 1, "Enables or disables movement inputs HUD of client.\n", FCVAR_DONTRECORD);
-Variable sar_ihud_x("sar_ihud_x", "2", "X position of input HUD.\n", FCVAR_DONTRECORD);
-Variable sar_ihud_y("sar_ihud_y", "-2", "Y position of input HUD.\n", FCVAR_DONTRECORD);
-Variable sar_ihud_grid_padding("sar_ihud_grid_padding", "2", 0, "Padding between grid squares of input HUD.\n", FCVAR_DONTRECORD);
-Variable sar_ihud_grid_size("sar_ihud_grid_size", "60", 0, "Grid square size of input HUD.\n", FCVAR_DONTRECORD);
-Variable sar_ihud_analog_image_scale("sar_ihud_analog_image_scale", "0.6", 0, 1, "Scale of analog input images against max extent.\n", FCVAR_DONTRECORD);
-Variable sar_ihud_analog_view_deshake("sar_ihud_analog_view_deshake", "0", "Try to eliminate small fluctuations in the movement analog.\n", FCVAR_DONTRECORD);
+Variable p2sm_ihud("p2sm_ihud", "0", 0, 1, "Enables or disables movement inputs HUD of client.\n", FCVAR_DONTRECORD);
+Variable p2sm_ihud_x("p2sm_ihud_x", "2", "X position of input HUD.\n", FCVAR_DONTRECORD);
+Variable p2sm_ihud_y("p2sm_ihud_y", "-2", "Y position of input HUD.\n", FCVAR_DONTRECORD);
+Variable p2sm_ihud_grid_padding("p2sm_ihud_grid_padding", "2", 0, "Padding between grid squares of input HUD.\n", FCVAR_DONTRECORD);
+Variable p2sm_ihud_grid_size("p2sm_ihud_grid_size", "60", 0, "Grid square size of input HUD.\n", FCVAR_DONTRECORD);
+Variable p2sm_ihud_analog_image_scale("p2sm_ihud_analog_image_scale", "0.6", 0, 1, "Scale of analog input images against max extent.\n", FCVAR_DONTRECORD);
+Variable p2sm_ihud_analog_view_deshake("p2sm_ihud_analog_view_deshake", "0", "Try to eliminate small fluctuations in the movement analog.\n", FCVAR_DONTRECORD);
 
 InputHud inputHud;
 
@@ -61,7 +61,7 @@ void InputHud::SetInputInfo(int slot, int buttonBits, Vector movement) {
 }
 
 bool InputHud::ShouldDraw() {
-	return sar_ihud.GetBool() && Hud::ShouldDraw();
+	return p2sm_ihud.GetBool() && Hud::ShouldDraw();
 }
 
 void InputHud::Paint(int slot) {
@@ -82,11 +82,11 @@ void InputHud::Paint(int slot) {
 	}
 
 	// do the actual drawing
-	auto hudX = PositionFromString(sar_ihud_x.GetString(), true);
-	auto hudY = PositionFromString(sar_ihud_y.GetString(), false);
+	auto hudX = PositionFromString(p2sm_ihud_x.GetString(), true);
+	auto hudY = PositionFromString(p2sm_ihud_y.GetString(), false);
 
-	auto btnSize = sar_ihud_grid_size.GetFloat();
-	auto btnPadding = sar_ihud_grid_padding.GetFloat();
+	auto btnSize = p2sm_ihud_grid_size.GetFloat();
+	auto btnPadding = p2sm_ihud_grid_padding.GetFloat();
 
 	if (this->bgTextureId != -1) {
 		surface->DrawSetColor(surface->matsurface->ThisPtr(), 255, 255, 255, 255);
@@ -160,7 +160,7 @@ void InputHud::Paint(int slot) {
 				while (v.x < -180.0f) v.x += 360.0f;
 				if (v.x > 180.0f) v.x -= 360.0f;
 
-				if (sar_ihud_analog_view_deshake.GetBool()) {
+				if (p2sm_ihud_analog_view_deshake.GetBool()) {
 					// Viewangle can fluctuate a tiny bit in normal situations
 					// sometimes, which looks super weird. To deal with this, don't
 					// record tiny changes on the HUD. As an exception to this, if
@@ -196,7 +196,7 @@ void InputHud::Paint(int slot) {
 				}
 			} else {
 				// vector drawing with an image
-				int size = (float)eWidth * sar_ihud_analog_image_scale.GetFloat();
+				int size = (float)eWidth * p2sm_ihud_analog_image_scale.GetFloat();
 				int padding = (eWidth-size)/2;
 				int x = eX + padding + padding*visV.x;
 				int y = eY + padding + padding*visV.y;
@@ -262,8 +262,8 @@ bool InputHud::GetCurrentSize(int &xSize, int &ySize) {
 	}
 
 	//transforming them into actual hud width and height
-	auto btnSize = sar_ihud_grid_size.GetFloat();
-	auto btnPadding = sar_ihud_grid_padding.GetFloat();
+	auto btnSize = p2sm_ihud_grid_size.GetFloat();
+	auto btnPadding = p2sm_ihud_grid_padding.GetFloat();
 
 	xSize = gridWidth * btnSize + std::max(0, gridWidth - 1) * btnPadding;
 	ySize = gridHeight * btnSize + std::max(0, gridHeight - 1) * btnPadding;
@@ -414,7 +414,7 @@ void InputHud::ApplyPreset(const char* preset, bool start) {
 
 		this->bgTextureId = -1;
 
-		if (!start) sar_ihud_grid_size.SetValue(60);
+		if (!start) p2sm_ihud_grid_size.SetValue(60);
 
 		if (!strcmp(preset, "normal_mouse")) {
 			PARAM("forward", "pos", "1 0 1 1");
@@ -473,7 +473,7 @@ void InputHud::ApplyPreset(const char* preset, bool start) {
 
 		this->bgTextureId = -1;
 
-		if (!start) sar_ihud_grid_size.SetValue(40);
+		if (!start) p2sm_ihud_grid_size.SetValue(40);
 	} else {
 		console->Print("Unknown input hud preset %s!\n", preset);
 	}
@@ -564,10 +564,10 @@ void InputHud::AddElement(std::string name, int type) {
 	});
 }
 
-DECL_AUTO_COMMAND_COMPLETION(sar_ihud_preset, ({"normal", "normal_mouse", "tas"}))
-CON_COMMAND_F_COMPLETION(sar_ihud_preset, "sar_ihud_preset <preset> - modifies input hud based on given preset\n", FCVAR_DONTRECORD, AUTOCOMPLETION_FUNCTION(sar_ihud_preset)) {
+DECL_AUTO_COMMAND_COMPLETION(p2sm_ihud_preset, ({"normal", "normal_mouse", "tas"}))
+CON_COMMAND_F_COMPLETION(p2sm_ihud_preset, "p2sm_ihud_preset <preset> - modifies input hud based on given preset\n", FCVAR_DONTRECORD, AUTOCOMPLETION_FUNCTION(p2sm_ihud_preset)) {
 	if (args.ArgC() != 2) {
-		console->Print(sar_ihud_preset.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_ihud_preset.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
@@ -575,7 +575,7 @@ CON_COMMAND_F_COMPLETION(sar_ihud_preset, "sar_ihud_preset <preset> - modifies i
 	inputHud.ApplyPreset(preset, false);
 }
 
-DECL_COMMAND_COMPLETION(sar_ihud_modify) {
+DECL_COMMAND_COMPLETION(p2sm_ihud_modify) {
 	while (isspace(*match)) ++match;
 
 	if (std::string(match).find(" ") != std::string::npos) {
@@ -597,13 +597,13 @@ DECL_COMMAND_COMPLETION(sar_ihud_modify) {
 	FINISH_COMMAND_COMPLETION();
 }
 
-CON_COMMAND_F_COMPLETION(sar_ihud_modify,
-	"sar_ihud_modify <element|all> [param=value]... - modifies parameters in given element.\n"
+CON_COMMAND_F_COMPLETION(p2sm_ihud_modify,
+	"p2sm_ihud_modify <element|all> [param=value]... - modifies parameters in given element.\n"
     "Params: enabled, text, pos, x, y, width, height, font, background, highlight, textcolor, texthighlight, image, highlightimage, minhold.\n",
-	FCVAR_DONTRECORD, AUTOCOMPLETION_FUNCTION(sar_ihud_modify)
+	FCVAR_DONTRECORD, AUTOCOMPLETION_FUNCTION(p2sm_ihud_modify)
 ) {
 	if (args.ArgC() < 3) {
-		console->Print(sar_ihud_modify.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_ihud_modify.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
@@ -611,7 +611,7 @@ CON_COMMAND_F_COMPLETION(sar_ihud_modify,
 	const char *elementName = args[1];
 	if (!inputHud.HasElement(elementName) && strcmp(elementName, "all")) {
 		console->Print("Input HUD element %s doesn't exist.\n", elementName);
-		//console->Print(sar_ihud_modify.ThisPtr()->m_pszHelpString);
+		//console->Print(p2sm_ihud_modify.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
@@ -666,9 +666,9 @@ CON_COMMAND_F_COMPLETION(sar_ihud_modify,
 	}
 }
 
-CON_COMMAND_F(sar_ihud_add_key, "sar_ihud_add_key <key>\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_ihud_add_key, "p2sm_ihud_add_key <key>\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() < 2) {
-		console->Print(sar_ihud_add_key.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_ihud_add_key.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
@@ -686,11 +686,11 @@ CON_COMMAND_F(sar_ihud_add_key, "sar_ihud_add_key <key>\n", FCVAR_DONTRECORD) {
 	inputHud.AddElement(args[1], keyCode);
 }
 
-CON_COMMAND_HUD_SETPOS(sar_ihud, "input HUD")
+CON_COMMAND_HUD_SETPOS(p2sm_ihud, "input HUD")
 
-CON_COMMAND_F(sar_ihud_set_background, "sar_ihud_set_background <path> <grid x> <grid y> <grid w> <grid h>\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_ihud_set_background, "p2sm_ihud_set_background <path> <grid x> <grid y> <grid w> <grid h>\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() != 6) {
-		console->Print(sar_ihud_set_background.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_ihud_set_background.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
@@ -715,6 +715,6 @@ CON_COMMAND_F(sar_ihud_set_background, "sar_ihud_set_background <path> <grid x> 
 	inputHud.bgGridH = atoi(args[5]);
 }
 
-CON_COMMAND_F(sar_ihud_clear_background, "sar_ihud_clear_background\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_ihud_clear_background, "p2sm_ihud_clear_background\n", FCVAR_DONTRECORD) {
 	inputHud.bgTextureId = -1;
 }

@@ -187,7 +187,7 @@ void Variable::ClearAllCallbacks() {
 int Variable::RegisterAll() {
 	auto result = 0;
 	for (const auto &var : Variable::GetList()) {
-		if (var->version != SourceGame_Unknown && !sar.game->Is(var->version)) {
+		if (var->version != SourceGame_Unknown && !p2sm.game->Is(var->version)) {
 			continue;
 		}
 		var->Register();

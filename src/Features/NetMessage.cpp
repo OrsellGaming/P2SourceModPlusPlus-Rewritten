@@ -13,10 +13,10 @@
 // 4-byte sequences crafted to be unlikely to appear in normal chat messages. These are sent at the
 // start of messages to indicate SAR data. It's important these remain small. We have separate
 // prefixes for continuations to prevent shit hitting the fan if the connection is lost mid-message.
-#define SAR_MSG_INIT_B "&^!$"
-#define SAR_MSG_INIT_O "&^!%"
-#define SAR_MSG_CONT_B "&^?$"
-#define SAR_MSG_CONT_O "&^?%"
+#define P2SM_MSG_INIT_B "&^!$"
+#define P2SM_MSG_INIT_O "&^!%"
+#define P2SM_MSG_CONT_B "&^?$"
+#define P2SM_MSG_CONT_O "&^?%"
 
 // if blue: whether orange is ready
 // if orange: whether we've sent the ready packet
@@ -24,8 +24,8 @@ bool g_orangeReady = false;
 bool g_partnerHasSAR = false;
 bool g_session_init = false;
 
-Variable sar_netmessage_debug("sar_netmessage_debug", "0", "Debug NetMessages.\n");
-Variable sar_netmessage_enable("sar_netmessage_enable", "1", "Enable sending NetMessages. Disabling this can break other features.\n");
+Variable p2sm_netmessage_debug("p2sm_netmessage_debug", "0", "Debug NetMessages.\n");
+Variable p2sm_netmessage_enable("p2sm_netmessage_enable", "1", "Enable sending NetMessages. Disabling this can break other features.\n");
 
 static size_t g_expected_len = 0;
 static std::string g_partial;
@@ -66,10 +66,10 @@ static bool readyToSend() {
 
 void NetMessage::SessionStarted() {
 	if (engine->IsCoop() && !engine->IsSplitscreen()) {
-		if (!g_session_init && engine->IsOrange() && sar_netmessage_enable.GetBool()) {
-			if (sar_netmessage_debug.GetBool()) console->Print("New coop session started as orange, saying hello!\n");
+		if (!g_session_init && engine->IsOrange() && p2sm_netmessage_enable.GetBool()) {
+			if (p2sm_netmessage_debug.GetBool()) console->Print("New coop session started as orange, saying hello!\n");
 			g_session_init = true;
-			engine->ExecuteCommand("say \"" SAR_MSG_HELLO "\"");
+			engine->ExecuteCommand("say \"" P2SM_MSG_HELLO "\"");
 		}
 	} else {
 		g_session_init = false;
@@ -180,13 +180,13 @@ void NetMessage::SendMsg(const char *type, const void *data, size_t size) {
 		return;
 	}
 
-	if (!sar_netmessage_enable.GetBool()) {
+	if (!p2sm_netmessage_enable.GetBool()) {
 		return;
 	}
 
 	// If the partner doesn't have SAR, don't send messages
 	if (!readyToSend()) {
-		if (sar_netmessage_debug.GetBool()) {
+		if (p2sm_netmessage_debug.GetBool()) {
 			console->Print("NetMessage::SendMsg: not ready to send %s, queueing\n", type);
 		}
 		g_queued.push({
@@ -195,12 +195,12 @@ void NetMessage::SendMsg(const char *type, const void *data, size_t size) {
 		});
 		return;
 	}
-	if (sar_netmessage_debug.GetBool()) {
+	if (p2sm_netmessage_debug.GetBool()) {
 		console->Print("NetMessage::SendMsg: sending %s\n", type);
 	}
 
-	const char *init_prefix = engine->IsOrange() ? SAR_MSG_INIT_O : SAR_MSG_INIT_B;
-	const char *cont_prefix = engine->IsOrange() ? SAR_MSG_CONT_O : SAR_MSG_CONT_B;
+	const char *init_prefix = engine->IsOrange() ? P2SM_MSG_INIT_O : P2SM_MSG_INIT_B;
+	const char *cont_prefix = engine->IsOrange() ? P2SM_MSG_CONT_O : P2SM_MSG_CONT_B;
 
 	size_t type_len = strlen(type);
 	size_t raw_len = type_len + size + 1;
@@ -246,7 +246,7 @@ void NetMessage::Update() {
 	}
 
 	if (readyToSend()) {
-		if (g_queued.size() > 0 && sar_netmessage_debug.GetBool()) {
+		if (g_queued.size() > 0 && p2sm_netmessage_debug.GetBool()) {
 			console->Print("NetMessage::Update: sending queued messages\n");
 		}
 		for (size_t i = 0; i < g_queued.size(); ++i) {
@@ -257,7 +257,7 @@ void NetMessage::Update() {
 	}
 
 	static float last_print = 0;
-	if (sar_netmessage_debug.GetBool() && g_queued.size() > 0 && engine->GetHostTime() - last_print > 1) {
+	if (p2sm_netmessage_debug.GetBool() && g_queued.size() > 0 && engine->GetHostTime() - last_print > 1) {
 		console->Print("NetMessage::Update: %d messages in queue\n", g_queued.size());
 		last_print = engine->GetHostTime();
 	}
@@ -265,18 +265,18 @@ void NetMessage::Update() {
 
 bool NetMessage::ChatData(std::string str) {
 	if (str.size() < 4) return false;
-	if (sar_netmessage_debug.GetBool()) console->Print("NetMessage::ChatData: %s\n", str.c_str());
+	if (p2sm_netmessage_debug.GetBool()) console->Print("NetMessage::ChatData: %s\n", str.c_str());
 
-	if (str == SAR_MSG_HELLO) {
+	if (str == P2SM_MSG_HELLO) {
 		if (!engine->IsOrange()) {
-			if (sar_netmessage_debug.GetBool()) console->Print("NetMessage::ChatData: Received hello message! Replying\n");
+			if (p2sm_netmessage_debug.GetBool()) console->Print("NetMessage::ChatData: Received hello message! Replying\n");
 			g_partnerHasSAR = true;
-			engine->ExecuteCommand("say \"" SAR_MSG_HELLO_ACK "\"");
+			engine->ExecuteCommand("say \"" P2SM_MSG_HELLO_ACK "\"");
 		}
 		return true;
-	} else if (str == SAR_MSG_HELLO_ACK) {
+	} else if (str == P2SM_MSG_HELLO_ACK) {
 		if (engine->IsOrange()) {
-			if (sar_netmessage_debug.GetBool()) console->Print("NetMessage::ChatData: Received hello ack message!\n");
+			if (p2sm_netmessage_debug.GetBool()) console->Print("NetMessage::ChatData: Received hello ack message!\n");
 			g_partnerHasSAR = true;
 		}
 		return true;
@@ -285,13 +285,13 @@ bool NetMessage::ChatData(std::string str) {
 	std::string prefix = str.substr(0, 4);
 	bool has_prefix = true;
 	bool cont, orange;
-	if (prefix == SAR_MSG_INIT_B) {
+	if (prefix == P2SM_MSG_INIT_B) {
 		cont = false; orange = false;
-	} else if (prefix == SAR_MSG_INIT_O) {
+	} else if (prefix == P2SM_MSG_INIT_O) {
 		cont = false; orange = true;
-	} else if (prefix == SAR_MSG_CONT_B) {
+	} else if (prefix == P2SM_MSG_CONT_B) {
 		cont = true; orange = false;
-	} else if (prefix == SAR_MSG_CONT_O) {
+	} else if (prefix == P2SM_MSG_CONT_O) {
 		cont = true; orange = true;
 	} else {
 		has_prefix = false;
@@ -318,7 +318,7 @@ bool NetMessage::ChatData(std::string str) {
 		const char *type = (const char *)decoded.data(); // starts with null-terminated type
 		size_t type_len = strlen(type);
 		const uint8_t *data = decoded.data() + type_len + 1;
-		if (sar_netmessage_debug.GetBool()) console->Print("NetMessage::ChatData: received %s\n", type);
+		if (p2sm_netmessage_debug.GetBool()) console->Print("NetMessage::ChatData: received %s\n", type);
 		handleMessage(type, data, decoded.size() - type_len - 1);
 	}
 

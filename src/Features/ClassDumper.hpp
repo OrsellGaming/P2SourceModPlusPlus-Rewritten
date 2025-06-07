@@ -22,9 +22,9 @@ private:
 
 extern ClassDumper *classDumper;
 
-extern Command sar_dump_server_classes;
-extern Command sar_dump_client_classes;
-extern Command sar_list_server_classes;
-extern Command sar_list_client_classes;
-extern Command sar_find_server_class;
-extern Command sar_find_client_class;
+extern Command p2sm_dump_server_classes;
+extern Command p2sm_dump_client_classes;
+extern Command p2sm_list_server_classes;
+extern Command p2sm_list_client_classes;
+extern Command p2sm_find_server_class;
+extern Command p2sm_find_client_class;

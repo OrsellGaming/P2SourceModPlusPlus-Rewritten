@@ -12,16 +12,16 @@
 #include <cmath>
 #include <vector>
 
-Variable sar_velocitygraph("sar_velocitygraph", "0", "Shows velocity graph.\n");
-Variable sar_velocitygraph_font_index("sar_velocitygraph_font_index", "21", 0, "Font index of velocity graph.\n"); // 21 looks pretty good
-Variable sar_velocitygraph_show_line("sar_velocitygraph_show_line", "1", "Shows line for velocity graph.\n");
-Variable sar_velocitygraph_x("sar_velocitygraph_x", "-250", "Velocity graph x axis offset.\n");
-Variable sar_velocitygraph_y("sar_velocitygraph_y", "-175", "Velocity graph y axis offset.\n");
-Variable sar_velocitygraph_background("sar_velocitygraph_background", "0", "Background of velocity graph.\n"); // imo this should be off by default
-Variable sar_velocitygraph_show_speed_on_graph("sar_velocitygraph_show_speed_on_graph", "1", "Show speed between jumps.\n");
-Variable sar_velocitygraph_rainbow("sar_velocitygraph_rainbow", "0", "Rainbow mode of velocity graph text.\n");
-Variable sar_velocitygraph_text_color("sar_velocitygraph_text_color", "1", "Whether to color the text of the velocity graph.\n");
-Variable sar_velocitygraph_text_groundspeed("sar_velocitygraph_text_groundspeed", "1", "Whether to show the ground speed on the velocity graph text.\n");
+Variable p2sm_velocitygraph("p2sm_velocitygraph", "0", "Shows velocity graph.\n");
+Variable p2sm_velocitygraph_font_index("p2sm_velocitygraph_font_index", "21", 0, "Font index of velocity graph.\n"); // 21 looks pretty good
+Variable p2sm_velocitygraph_show_line("p2sm_velocitygraph_show_line", "1", "Shows line for velocity graph.\n");
+Variable p2sm_velocitygraph_x("p2sm_velocitygraph_x", "-250", "Velocity graph x axis offset.\n");
+Variable p2sm_velocitygraph_y("p2sm_velocitygraph_y", "-175", "Velocity graph y axis offset.\n");
+Variable p2sm_velocitygraph_background("p2sm_velocitygraph_background", "0", "Background of velocity graph.\n"); // imo this should be off by default
+Variable p2sm_velocitygraph_show_speed_on_graph("p2sm_velocitygraph_show_speed_on_graph", "1", "Show speed between jumps.\n");
+Variable p2sm_velocitygraph_rainbow("p2sm_velocitygraph_rainbow", "0", "Rainbow mode of velocity graph text.\n");
+Variable p2sm_velocitygraph_text_color("p2sm_velocitygraph_text_color", "1", "Whether to color the text of the velocity graph.\n");
+Variable p2sm_velocitygraph_text_groundspeed("p2sm_velocitygraph_text_groundspeed", "1", "Whether to show the ground speed on the velocity graph text.\n");
 
 struct VelocityData {
 	int speed;
@@ -47,7 +47,7 @@ VelocityGraph::VelocityGraph()
 	: Hud(HudType_InGame | HudType_Paused | HudType_Menu, true) {
 }
 bool VelocityGraph::ShouldDraw() {
-	return sar_velocitygraph.GetBool() && Hud::ShouldDraw();
+	return p2sm_velocitygraph.GetBool() && Hud::ShouldDraw();
 }
 
 void ClearData(int slot) {
@@ -79,14 +79,14 @@ void VelocityGraph::Paint(int slot) {
 	engine->GetScreenSize(nullptr, x, y);
 
 	Vector2<int> graphPos = Vector2<int>(x / 2, 0) + 
-		Vector2<int>(sar_velocitygraph_x.GetInt(), sar_velocitygraph_y.GetInt());
+		Vector2<int>(p2sm_velocitygraph_x.GetInt(), p2sm_velocitygraph_y.GetInt());
 	if (graphPos.y < 0) graphPos.y += y;
 
-	bool should_draw_takeoff = (!last_on_ground[slot] || take_off_display_timeout[slot] > engine->GetClientTime()) && sar_velocitygraph_text_groundspeed.GetBool();
+	bool should_draw_takeoff = (!last_on_ground[slot] || take_off_display_timeout[slot] > engine->GetClientTime()) && p2sm_velocitygraph_text_groundspeed.GetBool();
 	int recentSpeed = velocityStamps[slot][velocityStamps[slot].size - 10].speed;
 	Color c = Color(30, 255, 109);
-	if (sar_velocitygraph_text_color.GetBool()) {
-		if (sar_velocitygraph_rainbow.GetBool()) {
+	if (p2sm_velocitygraph_text_color.GetBool()) {
+		if (p2sm_velocitygraph_rainbow.GetBool()) {
 			c = Utils::HSVToRGB(speed, 100, 100);
 		} else if (std::abs(speed - recentSpeed) < 5) {
 			c = Color(255, 199, 89);
@@ -97,12 +97,12 @@ void VelocityGraph::Paint(int slot) {
 		c = Color(255, 255, 255);
 	}
 
-	auto font = scheme->GetFontByID(sar_velocitygraph_font_index.GetInt());
+	auto font = scheme->GetFontByID(p2sm_velocitygraph_font_index.GetInt());
 	auto length = surface->GetFontLength(font, should_draw_takeoff ? "%i (%i)\n" : "%i", speed, take_off[slot]);
 
 	surface->DrawTxt(font, graphPos.x + 250 - length / 2, graphPos.y + 25, c, should_draw_takeoff ? "%i (%i)\n" : "%i", speed, take_off[slot]);
 
-	if (!sar_velocitygraph_show_line.GetBool()) return;
+	if (!p2sm_velocitygraph_show_line.GetBool()) return;
 
 	for (size_t i = 1; i < velocityStamps[slot].size - 1; i++) {
 		const auto current = velocityStamps[slot][i];
@@ -115,7 +115,7 @@ void VelocityGraph::Paint(int slot) {
 		int next_speed = (clamped_next_speed * 75 / 320);
 
 		if (current.on_ground != next.on_ground && !current.on_ground) {
-			if (sar_velocitygraph_show_speed_on_graph.GetBool()) {
+			if (p2sm_velocitygraph_show_speed_on_graph.GetBool()) {
 				auto height = 15;
 
 				surface->DrawTxt(scheme->GetFontByID(2), graphPos + Vector2<int>(i, -next_speed - height),
@@ -128,7 +128,7 @@ void VelocityGraph::Paint(int slot) {
 			Color(255, 255, 255));
 	}
 
-	if (sar_velocitygraph_background.GetBool())
+	if (p2sm_velocitygraph_background.GetBool())
 		surface->DrawRect({0, 0, 0, 192}, graphPos - Vector2<int>(5, 150 + 5), graphPos + Vector2<int>(5 + 500, 5));
 }
 bool VelocityGraph::GetCurrentSize(int &xSize, int &ySize) {

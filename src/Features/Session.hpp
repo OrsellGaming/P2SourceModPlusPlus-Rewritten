@@ -38,5 +38,5 @@ public:
 
 extern Session *session;
 
-extern Variable sar_loads_uncap;
-extern Variable sar_loads_norender;
+extern Variable p2sm_loads_uncap;
+extern Variable p2sm_loads_norender;

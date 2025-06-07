@@ -14,18 +14,18 @@
 #include <filesystem>
 #include <string>
 
-Variable sar_crosshair_mode("sar_crosshair_mode", "0", 0, 2,
+Variable p2sm_crosshair_mode("p2sm_crosshair_mode", "0", 0, 2,
                             "Set the crosshair mode :\n"
                             "0: Default crosshair\n"
                             "1: Customizable crosshair\n"
                             "2: Crosshair from .png\n");
-Variable sar_quickhud_mode("sar_quickhud_mode", "0", 0, 2,
+Variable p2sm_quickhud_mode("p2sm_quickhud_mode", "0", 0, 2,
                            "Set the quickhud mode :\n"
                            "0: Default quickhud\n"
                            "1: Customizable quickhud\n"
                            "2: quickhud from .png\n");
 
-Variable sar_crosshair_P1("sar_crosshair_P1", "0", "Use the P1 crosshair style.\n");
+Variable p2sm_crosshair_P1("p2sm_crosshair_P1", "0", "Use the P1 crosshair style.\n");
 
 Variable cl_crosshair_t("cl_crosshair_t", "0",
                         "Removes the top line from the crosshair :"
@@ -132,7 +132,7 @@ void Crosshair::GetPortalsStates(int slot, int &portalUpgradeState, bool &isBlue
 
 	portalUpgradeState = GetPortalUpgradeState(slot);
 	if (portalUpgradeState) {
-		if (sar_crosshair_P1.GetBool() && sv_cheats.GetBool()) {
+		if (p2sm_crosshair_P1.GetBool() && sv_cheats.GetBool()) {
 			if (this->IsSurfacePortalable()) {
 				isBlueActive = true;
 				isOrangeActive = true;
@@ -158,7 +158,7 @@ void Crosshair::GetPortalsStates(int slot, int &portalUpgradeState, bool &isBlue
 }
 
 void Crosshair::Paint(int slot) {
-	if (!sar_crosshair_mode.GetBool() && !sar_quickhud_mode.GetBool() && !sar_crosshair_P1.GetBool()) {
+	if (!p2sm_crosshair_mode.GetBool() && !p2sm_quickhud_mode.GetBool() && !p2sm_crosshair_P1.GetBool()) {
 		return;
 	}
 
@@ -183,7 +183,7 @@ void Crosshair::Paint(int slot) {
 	xCenter = xScreen / 2;
 	yCenter = yScreen / 2;
 
-	if (sar_crosshair_mode.GetInt() == 1) {  // Customizable crosshair
+	if (p2sm_crosshair_mode.GetInt() == 1) {  // Customizable crosshair
 		Color c(cl_crosshaircolor_r.GetInt(), cl_crosshaircolor_g.GetInt(), cl_crosshaircolor_b.GetInt(), cl_crosshairalpha.GetInt());
 
 		int gap = cl_crosshairgap.GetInt();
@@ -216,7 +216,7 @@ void Crosshair::Paint(int slot) {
 			surface->DrawRect(c, xCenter, yCenter, xCenter + 1, yCenter + 1);
 		}
 
-	} else if (sar_crosshair_mode.GetInt() == 2 && this->isCustomCrosshairReady) {  // Crosshair from .png
+	} else if (p2sm_crosshair_mode.GetInt() == 2 && this->isCustomCrosshairReady) {  // Crosshair from .png
 		int halfSize = cl_crosshairsize.GetInt() / 2;
 
 		surface->DrawSetColor(surface->matsurface->ThisPtr(), 255, 255, 255, cl_crosshairalpha.GetInt());
@@ -228,7 +228,7 @@ void Crosshair::Paint(int slot) {
 	bool bluePortalState, orangePortalState;
 	this->GetPortalsStates(slot, portalGunUpgradeState, bluePortalState, orangePortalState);
 
-	if ((sar_quickhud_mode.GetInt() == 1 || sar_crosshair_P1.GetBool()) && portalGunUpgradeState) {  // Customizable quickhud
+	if ((p2sm_quickhud_mode.GetInt() == 1 || p2sm_crosshair_P1.GetBool()) && portalGunUpgradeState) {  // Customizable quickhud
 		Color cl(cl_quickhudleftcolor_r.GetInt(), cl_quickhudleftcolor_g.GetInt(), cl_quickhudleftcolor_b.GetInt(), cl_quickhud_alpha.GetInt());
 		Color cr(cl_quickhudrightcolor_r.GetInt(), cl_quickhudrightcolor_g.GetInt(), cl_quickhudrightcolor_b.GetInt(), cl_quickhud_alpha.GetInt());
 
@@ -251,7 +251,7 @@ void Crosshair::Paint(int slot) {
 			}
 		}
 
-	} else if ((sar_quickhud_mode.GetInt() == 2 || sar_crosshair_P1.GetBool()) && this->isCustomQuickHudReady && portalGunUpgradeState) {  // Quickhud from .png
+	} else if ((p2sm_quickhud_mode.GetInt() == 2 || p2sm_crosshair_P1.GetBool()) && this->isCustomQuickHudReady && portalGunUpgradeState) {  // Quickhud from .png
 		int width, height;
 
 		auto team = slot == 1 ? 2 : engine->IsCoop() ? 3 : 0;
@@ -356,10 +356,10 @@ bool Crosshair::SetQuickHudTexture(const std::string basefile) {
 
 // Commands
 
-DECL_COMMAND_FILE_COMPLETION(sar_crosshair_set_texture, ".png", "", 1);
-CON_COMMAND_F_COMPLETION(sar_crosshair_set_texture, "sar_crosshair_set_texture <filepath>\n", 0, AUTOCOMPLETION_FUNCTION(sar_crosshair_set_texture)) {
+DECL_COMMAND_FILE_COMPLETION(p2sm_crosshair_set_texture, ".png", "", 1);
+CON_COMMAND_F_COMPLETION(p2sm_crosshair_set_texture, "p2sm_crosshair_set_texture <filepath>\n", 0, AUTOCOMPLETION_FUNCTION(p2sm_crosshair_set_texture)) {
 	if (args.ArgC() < 2) {
-		return console->Print(sar_crosshair_set_texture.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_crosshair_set_texture.ThisPtr()->m_pszHelpString);
 	}
 
 	auto filePath = std::string(args[1]);
@@ -374,14 +374,14 @@ CON_COMMAND_F_COMPLETION(sar_crosshair_set_texture, "sar_crosshair_set_texture <
 	crosshair.isCustomCrosshairReady = true;
 }
 
-DECL_COMMAND_FILE_COMPLETION(sar_quickhud_set_texture, ".png", "", 1)
-CON_COMMAND_F_COMPLETION(sar_quickhud_set_texture,
-                         "sar_quickhud_set_texture <filepath> - enter the base name, it will search for <filepath>1.png, <filepath>2.png, <filepath>3.png and <filepath>4.png\n"
-                         "ex: sar_quickhud_set_texture \"crosshair/basic\" looks for \"crosshair/basic1.png\", etc\n",
+DECL_COMMAND_FILE_COMPLETION(p2sm_quickhud_set_texture, ".png", "", 1)
+CON_COMMAND_F_COMPLETION(p2sm_quickhud_set_texture,
+                         "p2sm_quickhud_set_texture <filepath> - enter the base name, it will search for <filepath>1.png, <filepath>2.png, <filepath>3.png and <filepath>4.png\n"
+                         "ex: p2sm_quickhud_set_texture \"crosshair/basic\" looks for \"crosshair/basic1.png\", etc\n",
                          0,
-                         AUTOCOMPLETION_FUNCTION(sar_quickhud_set_texture)) {
+                         AUTOCOMPLETION_FUNCTION(p2sm_quickhud_set_texture)) {
 	if (args.ArgC() < 2) {
-		return console->Print(sar_quickhud_set_texture.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_quickhud_set_texture.ThisPtr()->m_pszHelpString);
 	}
 
 	auto filePath = std::string(args[1]);

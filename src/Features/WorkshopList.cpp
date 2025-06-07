@@ -49,7 +49,7 @@ int WorkshopList::Update() {
 
 // Completion Function
 
-DECL_COMMAND_COMPLETION(sar_workshop) {
+DECL_COMMAND_COMPLETION(p2sm_workshop) {
 	if (workshop->maps.empty()) {
 		workshop->Update();
 	}
@@ -73,9 +73,9 @@ DECL_COMMAND_COMPLETION(sar_workshop) {
 
 // Commands
 
-CON_COMMAND_F_COMPLETION(sar_workshop, "sar_workshop <file> [ss/changelevel] - same as \"map\" command but lists workshop maps\n", 0, AUTOCOMPLETION_FUNCTION(sar_workshop)) {
+CON_COMMAND_F_COMPLETION(p2sm_workshop, "p2sm_workshop <file> [ss/changelevel] - same as \"map\" command but lists workshop maps\n", 0, AUTOCOMPLETION_FUNCTION(p2sm_workshop)) {
 	if (args.ArgC() < 2) {
-		return console->Print(sar_workshop.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_workshop.ThisPtr()->m_pszHelpString);
 	}
 
 	auto command = std::string("map");
@@ -90,10 +90,10 @@ CON_COMMAND_F_COMPLETION(sar_workshop, "sar_workshop <file> [ss/changelevel] - s
 
 	engine->ExecuteCommand((command + std::string(" workshop/") + std::string(args[1])).c_str());
 }
-CON_COMMAND(sar_workshop_update, "sar_workshop_update - updates the workshop map list\n") {
+CON_COMMAND(p2sm_workshop_update, "p2sm_workshop_update - updates the workshop map list\n") {
 	console->Print("Added or removed %i map(s) to or from the list.\n", workshop->Update());
 }
-CON_COMMAND(sar_workshop_list, "sar_workshop_list - prints all workshop maps\n") {
+CON_COMMAND(p2sm_workshop_list, "p2sm_workshop_list - prints all workshop maps\n") {
 	if (workshop->maps.empty()) {
 		workshop->Update();
 	}

@@ -11,9 +11,9 @@ The server should always send a packet with ID 255 first; it'll never send this 
 player -> controller:
 	[0] set active
 		len1: u32
-		filename1: [len1]u8  // relative to "Portal 2/tas/", so the same as the arg you'd give to sar_tas_play
+		filename1: [len1]u8  // relative to "Portal 2/tas/", so the same as the arg you'd give to p2sm_tas_play
 		len2: u32            // 0 if SP TAS
-		filename2: [len2]u8  // relative to "Portal 2/tas/", so the same as the arg you'd give to sar_tas_play
+		filename2: [len2]u8  // relative to "Portal 2/tas/", so the same as the arg you'd give to p2sm_tas_play
 
 	[1] set inactive
 
@@ -51,9 +51,9 @@ player -> controller:
 controller -> player:
 	[0] request playback
 		len1: u32
-		filename1: [len1]u8  // relative to "Portal 2/tas/", so the same as the arg you'd give to sar_tas_play
+		filename1: [len1]u8  // relative to "Portal 2/tas/", so the same as the arg you'd give to p2sm_tas_play
 		len2: u32            // 0 if SP TAS
-		filename2: [len2]u8  // relative to "Portal 2/tas/", so the same as the arg you'd give to sar_tas_play
+		filename2: [len2]u8  // relative to "Portal 2/tas/", so the same as the arg you'd give to p2sm_tas_play
 	
 	[1] stop playback
 	

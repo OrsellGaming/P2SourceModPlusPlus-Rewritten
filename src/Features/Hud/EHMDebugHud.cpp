@@ -7,15 +7,15 @@
 #include "Event.hpp"
 #include "Hud.hpp"
 
-Variable sar_ehm_hud("sar_ehm_hud", "0", "Enables EHM debug HUD.\n");
+Variable p2sm_ehm_hud("p2sm_ehm_hud", "0", "Enables EHM debug HUD.\n");
 
-Variable sar_ehm_hud_x("sar_ehm_hud_x", "-10", "The X position of the EHM debug HUD.\n", 0);
-Variable sar_ehm_hud_y("sar_ehm_hud_y", "10", "The Y position of the EHM debug HUD.\n", 0);
-Variable sar_ehm_hud_font("sar_ehm_hud_font", "2", "Font used by the EHM debug HUD.\n", 0);
+Variable p2sm_ehm_hud_x("p2sm_ehm_hud_x", "-10", "The X position of the EHM debug HUD.\n", 0);
+Variable p2sm_ehm_hud_y("p2sm_ehm_hud_y", "10", "The Y position of the EHM debug HUD.\n", 0);
+Variable p2sm_ehm_hud_font("p2sm_ehm_hud_font", "2", "Font used by the EHM debug HUD.\n", 0);
 
-Variable sar_ehm_hud_list_length("sar_ehm_hud_list_length", "20", "How many slots to show in the EHM debug HUD.\n", 0);
+Variable p2sm_ehm_hud_list_length("p2sm_ehm_hud_list_length", "20", "How many slots to show in the EHM debug HUD.\n", 0);
 
-Variable sar_ehm_hud_autofill("sar_ehm_hud_autofill", "1", 
+Variable p2sm_ehm_hud_autofill("p2sm_ehm_hud_autofill", "1", 
 	"Whether to listen for changed slot and use it to replace the oldest one in EHM debug HUD.\n");
 
 struct SlotInfoRecord {
@@ -41,7 +41,7 @@ static void pushHudSlotOnTop(int slot) {
 	if (isSlotDisplayed(slot)) return;
 
 	g_hudSlots.insert(g_hudSlots.begin(), slot);
-	if (g_hudSlots.size() >= (size_t)sar_ehm_hud_list_length.GetInt()) {
+	if (g_hudSlots.size() >= (size_t)p2sm_ehm_hud_list_length.GetInt()) {
 		g_hudSlots.pop_back();
 	}
 }
@@ -49,7 +49,7 @@ static void pushHudSlotOnTop(int slot) {
 static void swapOldestSlotWith(int slot) {
 	if (isSlotDisplayed(slot)) return;
 
-	if (g_hudSlots.size() < (size_t)sar_ehm_hud_list_length.GetInt()) {
+	if (g_hudSlots.size() < (size_t)p2sm_ehm_hud_list_length.GetInt()) {
 		g_hudSlots.insert(g_hudSlots.begin(), slot);
 		return;
 	}
@@ -94,7 +94,7 @@ static void handleSlotRecords() {
 				? server->GetEntityClassName(info->m_pEntity)
 				: g_slotStates[i].lastClassname;
 
-			if (!fresh && sar_ehm_hud_autofill.GetBool()) {
+			if (!fresh && p2sm_ehm_hud_autofill.GetBool()) {
 				swapOldestSlotWith(i);
 			}
 
@@ -112,18 +112,18 @@ static void clearSlotRecords() {
 }
 
 static void handleHudSlotsResizing() {
-	while (g_hudSlots.size() < (size_t)sar_ehm_hud_list_length.GetInt()) {
+	while (g_hudSlots.size() < (size_t)p2sm_ehm_hud_list_length.GetInt()) {
 		int slotToAssign = (g_hudSlots.size() > 0) ? (g_hudSlots[g_hudSlots.size() - 1] + 1) : 0;
 		slotToAssign %= Offsets::NUM_ENT_ENTRIES;
 		g_hudSlots.push_back(slotToAssign);
 	}
-	if (g_hudSlots.size() > (size_t)sar_ehm_hud_list_length.GetInt()) {
-		g_hudSlots.resize(sar_ehm_hud_list_length.GetInt());
+	if (g_hudSlots.size() > (size_t)p2sm_ehm_hud_list_length.GetInt()) {
+		g_hudSlots.resize(p2sm_ehm_hud_list_length.GetInt());
 	}
 }
 
 ON_EVENT(POST_TICK) {
-	if (!sar_ehm_hud.GetBool() || !sv_cheats.GetBool()) {
+	if (!p2sm_ehm_hud.GetBool() || !sv_cheats.GetBool()) {
 		clearSlotRecords();
 		return;
 	}
@@ -132,9 +132,9 @@ ON_EVENT(POST_TICK) {
 	handleHudSlotsResizing();
 }
 
-CON_COMMAND(sar_ehm_hud_push, "sar_ehm_hud_push <slot> - push slot on top of the EHM debug HUD.\n") {
+CON_COMMAND(p2sm_ehm_hud_push, "p2sm_ehm_hud_push <slot> - push slot on top of the EHM debug HUD.\n") {
 	if (args.ArgC() != 2) {
-		return console->Print(sar_ehm_hud_push.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_ehm_hud_push.ThisPtr()->m_pszHelpString);
 	}
 
 	if (!sv_cheats.GetBool()) {
@@ -145,14 +145,14 @@ CON_COMMAND(sar_ehm_hud_push, "sar_ehm_hud_push <slot> - push slot on top of the
 	pushHudSlotOnTop(slot);
 }
 
-CON_COMMAND(sar_ehm_hud_refill, "sar_ehm_hud_refill [slot] - fills EHM debug HUD with slots starting from a given one.\n") {
+CON_COMMAND(p2sm_ehm_hud_refill, "p2sm_ehm_hud_refill [slot] - fills EHM debug HUD with slots starting from a given one.\n") {
 	if (!sv_cheats.GetBool()) {
 		return console->Print("sv_cheats must be enabled to use this command.\n");
 	}
 
 	int slot = args.ArgC() >= 2 ? std::atoi(args[1]) : 0;
 	g_hudSlots.clear();
-	for (int i = 0; i < sar_ehm_hud_list_length.GetInt(); i++) {
+	for (int i = 0; i < p2sm_ehm_hud_list_length.GetInt(); i++) {
 		g_hudSlots.push_back(slot + i);
 	}
 }
@@ -170,10 +170,10 @@ public:
 	const char *classnameHeader = "Slot Entity Classname       ";
 
 	bool GetCurrentSize(int &w, int &h) {
-		auto font = scheme->GetFontByID(sar_ehm_hud_font.GetInt());
+		auto font = scheme->GetFontByID(p2sm_ehm_hud_font.GetInt());
 
 		int lineHeight = surface->GetFontHeight(font);
-		h = (lineHeight + paddingY) * (sar_ehm_hud_list_length.GetInt() + 1) + paddingBorder * 2;
+		h = (lineHeight + paddingY) * (p2sm_ehm_hud_list_length.GetInt() + 1) + paddingBorder * 2;
 		w = paddingBorder * 2
 			+ surface->GetFontLength(font, slotHeader) + paddingX
 			+ surface->GetFontLength(font, serialHeader) + paddingX
@@ -183,12 +183,12 @@ public:
 	}
 
 	void Paint(int slot) override {
-		if (!sar_ehm_hud.GetBool() || !sv_cheats.GetBool()) return;
+		if (!p2sm_ehm_hud.GetBool() || !sv_cheats.GetBool()) return;
 
-		auto font = scheme->GetFontByID(sar_ehm_hud_font.GetInt());
+		auto font = scheme->GetFontByID(p2sm_ehm_hud_font.GetInt());
 
-		int hudX = PositionFromString(sar_ehm_hud_x.GetString(), true);
-		int hudY = PositionFromString(sar_ehm_hud_y.GetString(), false);
+		int hudX = PositionFromString(p2sm_ehm_hud_x.GetString(), true);
+		int hudY = PositionFromString(p2sm_ehm_hud_y.GetString(), false);
 
 		int width, height;
 		GetCurrentSize(width, height);

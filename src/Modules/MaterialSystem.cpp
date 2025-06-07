@@ -49,7 +49,7 @@ REDECL(MaterialSystem::CreateMaterial);
 
 DETOUR(MaterialSystem::UncacheUnusedMaterials, bool bRecomputeStateSnapshots) {
 	auto start = std::chrono::high_resolution_clock::now();
-	bool bRecomputeStateSnapshotFixed = sar_prevent_mat_snapshot_recompute.GetBool() ? false : bRecomputeStateSnapshots;
+	bool bRecomputeStateSnapshotFixed = p2sm_prevent_mat_snapshot_recompute.GetBool() ? false : bRecomputeStateSnapshots;
 	auto result = MaterialSystem::UncacheUnusedMaterials(thisptr, bRecomputeStateSnapshotFixed);
 	auto stop = std::chrono::high_resolution_clock::now();
 	console->DevMsg("UncacheUnusedMaterials - %dms\n", std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count());
@@ -57,7 +57,7 @@ DETOUR(MaterialSystem::UncacheUnusedMaterials, bool bRecomputeStateSnapshots) {
 }
 
 DETOUR_T(IMaterial *, MaterialSystem::CreateMaterial, const char *pMaterialName, void *pVMTKeyValues) {
-	if (sar.game->Is(SourceGame_Portal2 | SourceGame_Portal2_2011 | SourceGame_PortalReloaded | SourceGame_PortalStoriesMel)) {
+	if (p2sm.game->Is(SourceGame_Portal2 | SourceGame_Portal2_2011 | SourceGame_PortalReloaded | SourceGame_PortalStoriesMel)) {
 		// Patched by Valve, no need for us to do it again
 		return MaterialSystem::CreateMaterial(thisptr, pMaterialName, pVMTKeyValues);
 	}

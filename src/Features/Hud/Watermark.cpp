@@ -1,15 +1,15 @@
 #include "Version.hpp"
 #include "Modules/Engine.hpp"
 
-#if defined(SAR_DEV_BUILD) && !defined(NO_DEV_WATERMARK)
+#if defined(P2SM_DEV_BUILD) && !defined(NO_DEV_WATERMARK)
 
 #	include "Hud.hpp"
 #	include "Modules/Engine.hpp"
 #	include "Modules/Surface.hpp"
 #	include "Modules/Scheme.hpp"
 
-#	define WATERMARK_MSG_HEADER "Activate SAR"
-#	define WATERMARK_MSG_HELPTEXT "Development SAR build. Do not use."
+#	define WATERMARK_MSG_HEADER "Activate P2SM++"
+#	define WATERMARK_MSG_HELPTEXT "Development P2SM++ build. Do not use."
 
 class WatermarkHud : public Hud {
 public:

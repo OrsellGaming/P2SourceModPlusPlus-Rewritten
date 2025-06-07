@@ -233,14 +233,14 @@ extern Variable mat_norendering;
 extern Variable mat_filtertextures;
 extern Variable phys_timescale;
 
-extern Variable sar_record_at;
-extern Variable sar_record_at_demo_name;
-extern Variable sar_record_at_increment;
+extern Variable p2sm_record_at;
+extern Variable p2sm_record_at_demo_name;
+extern Variable p2sm_record_at_increment;
 
-extern Variable sar_pause_at;
-extern Variable sar_pause_for;
+extern Variable p2sm_pause_at;
+extern Variable p2sm_pause_for;
 
-extern Variable sar_tick_debug;
+extern Variable p2sm_tick_debug;
 
 extern float g_cur_fps;
 

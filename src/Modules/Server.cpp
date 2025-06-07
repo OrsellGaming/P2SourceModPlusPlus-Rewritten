@@ -148,7 +148,7 @@ DETOUR_T(bool, Server::CheckJumpButton) {
 	if (server->AllowsMovementChanges()) {
 		auto mv = *reinterpret_cast<CHLMoveData **>((uintptr_t)thisptr + Offsets::mv);
 
-		if (sar_autojump.GetBool() && !server->jumpedLastTime) {
+		if (p2sm_autojump.GetBool() && !server->jumpedLastTime) {
 			mv->m_nOldButtons &= ~IN_JUMP;
 		}
 
@@ -156,7 +156,7 @@ DETOUR_T(bool, Server::CheckJumpButton) {
 		server->savedVerticalVelocity = mv->m_vecVelocity[2];
 
 		server->callFromCheckJumpButton = true;
-		jumped = (sar_duckjump.isRegistered && sar_duckjump.GetBool())
+		jumped = (p2sm_duckjump.isRegistered && p2sm_duckjump.GetBool())
 			? Server::CheckJumpButtonBase(thisptr)
 			: Server::CheckJumpButton(thisptr);
 		server->callFromCheckJumpButton = false;
@@ -242,7 +242,7 @@ DETOUR(Server::PlayerMove) {
 
 	// Landed after a jump
 	if (stat->jumps->isTracing && m_fFlags & FL_ONGROUND && m_MoveType != MOVETYPE_NOCLIP) {
-		stat->jumps->EndTrace(server->GetAbsOrigin(player), sar_stats_jumps_xy.GetBool());
+		stat->jumps->EndTrace(server->GetAbsOrigin(player), p2sm_stats_jumps_xy.GetBool());
 	}
 
 	stepCounter->ReduceTimer(server->gpGlobals->frametime);
@@ -253,7 +253,7 @@ DETOUR(Server::PlayerMove) {
 		++stat->steps->total;
 	}
 
-	stat->velocity->Save(server->GetLocalVelocity(player), sar_stats_velocity_peak_xy.GetBool());
+	stat->velocity->Save(server->GetLocalVelocity(player), p2sm_stats_velocity_peak_xy.GetBool());
 	inspector->Record();
 
 	return Server::PlayerMove(thisptr);
@@ -265,7 +265,7 @@ DETOUR(Server::PlayerRunCommand, CUserCmd *cmd, void *moveHelper) {
 	int slot = server->GetSplitScreenPlayerSlot(thisptr);
 
 	if (!engine->IsGamePaused()) {
-		if (sar_tas_real_controller_debug.GetInt() == 3) {
+		if (p2sm_tas_real_controller_debug.GetInt() == 3) {
 			auto playerInfo = tasPlayer->GetPlayerInfo(slot, thisptr, cmd);
 			console->Print("Jump input state at tick %d: %s\n", playerInfo.tick, (cmd->buttons & IN_JUMP) ? "true" : "false");
 		}
@@ -309,7 +309,7 @@ Hook g_playerRunCommandHook(&Server::PlayerRunCommand_Hook);
 static bool (*UTIL_FindClosestPassableSpace)(const Vector &, const Vector &, const Vector &, unsigned, Vector &, int, FcpsTraceAdapter *);
 extern Hook UTIL_FindClosestPassableSpace_Hook;
 static bool UTIL_FindClosestPassableSpace_Detour(const Vector &center, const Vector &extents, const Vector &ind_push, unsigned iterations, Vector &center_out, int axis_restriction_flags, FcpsTraceAdapter *trace_adapter) {
-	if (sar_fcps_override.GetBool() && sv_cheats.GetBool()) {
+	if (p2sm_fcps_override.GetBool() && sv_cheats.GetBool()) {
 		return RecordFcps2(center, extents, ind_push, center_out, trace_adapter);
 	} else {
 		UTIL_FindClosestPassableSpace_Hook.Disable();
@@ -323,7 +323,7 @@ Hook UTIL_FindClosestPassableSpace_Hook(&UTIL_FindClosestPassableSpace_Detour);
 static bool (*FindClosestPassableSpace)(void *, const Vector &, int);
 extern Hook FindClosestPassableSpace_Hook;
 static bool FindClosestPassableSpace_Detour(void *entity, const Vector &ind_push, int mask) {
-	if (sar_fcps_override.GetBool() && sv_cheats.GetBool()) {
+	if (p2sm_fcps_override.GetBool() && sv_cheats.GetBool()) {
 		return RecordFcps1(entity, ind_push, mask);
 	} else {
 		FindClosestPassableSpace_Hook.Disable();
@@ -358,7 +358,7 @@ DETOUR(Server::ProcessMovement, void *player, CMoveData *move) {
 	playerTrace->TweakLatestEyeOffsetForPortalShot(move, slot, false);
 
 	// We edit pos after process movement to get accurate teleportation
-	// This is for sar_trace_teleport_at
+	// This is for p2sm_trace_teleport_at
 	if (g_playerTraceNeedsTeleport && slot == g_playerTraceTeleportSlot) {
 		move->m_vecAbsOrigin = g_playerTraceTeleportLocation;
 		g_playerTraceNeedsTeleport = false;
@@ -370,7 +370,7 @@ DETOUR(Server::ProcessMovement, void *player, CMoveData *move) {
 // CGameMovement::GetPlayerViewOffset
 DETOUR_T(Vector*, Server::GetPlayerViewOffset, bool ducked) {
 
-	if (sar_force_qc.GetBool() && sv_cheats.GetBool()) {
+	if (p2sm_force_qc.GetBool() && sv_cheats.GetBool()) {
 		bool holdingDuck = (inputHud.GetButtonBits(GET_SLOT()) & IN_DUCK);
 		if (holdingDuck) ducked = false;
 	}
@@ -378,11 +378,11 @@ DETOUR_T(Vector*, Server::GetPlayerViewOffset, bool ducked) {
 	return Server::GetPlayerViewOffset(thisptr,ducked);
 }
 
-Variable sar_always_transmit_heavy_ents("sar_always_transmit_heavy_ents", "0", "Always transmit large but seldom changing edicts to clients to prevent lag spikes.\n");
+Variable p2sm_always_transmit_heavy_ents("p2sm_always_transmit_heavy_ents", "0", "Always transmit large but seldom changing edicts to clients to prevent lag spikes.\n");
 
 extern Hook g_IsInPVS_Hook;
 DETOUR_T(bool, Server::IsInPVS, void *info) {
-	if (sar_always_transmit_heavy_ents.GetBool()) {
+	if (p2sm_always_transmit_heavy_ents.GetBool()) {
 		edict_t *m_pClientEnt = *(edict_t **)((uintptr_t)thisptr + 12);
 		if (m_pClientEnt->m_fStateFlags & FL_EDICT_FULL) {
 			ServerEnt *ent = (ServerEnt *)m_pClientEnt->m_pUnk;
@@ -458,7 +458,7 @@ Hook g_flagStartTouchHook(&Server::StartTouchChallengeNode_Hook);
 // CGameMovement::FinishGravity
 DETOUR(Server::FinishGravity) {
 	if (server->callFromCheckJumpButton) {
-		if (sar_duckjump.GetBool()) {
+		if (p2sm_duckjump.GetBool()) {
 			auto player = *reinterpret_cast<uintptr_t *>((uintptr_t)thisptr + Offsets::player);
 			auto mv = *reinterpret_cast<CHLMoveData **>((uintptr_t)thisptr + Offsets::mv);
 
@@ -476,7 +476,7 @@ DETOUR(Server::FinishGravity) {
 			}
 		}
 
-		if (sar_jumpboost.GetBool()) {
+		if (p2sm_jumpboost.GetBool()) {
 			auto player = *reinterpret_cast<uintptr_t *>((uintptr_t)thisptr + Offsets::player);
 			auto mv = *reinterpret_cast<CHLMoveData **>((uintptr_t)thisptr + Offsets::mv);
 
@@ -492,7 +492,7 @@ DETOUR(Server::FinishGravity) {
 			float flMaxSpeed = mv->m_flMaxSpeed + (mv->m_flMaxSpeed * flSpeedBoostPerc);
 			float flNewSpeed = flSpeedAddition + mv->m_vecVelocity.Length2D();
 
-			if (sar_jumpboost.GetInt() == 1) {
+			if (p2sm_jumpboost.GetInt() == 1) {
 				if (flNewSpeed > flMaxSpeed) {
 					flSpeedAddition -= flNewSpeed - flMaxSpeed;
 				}
@@ -511,7 +511,7 @@ DETOUR(Server::FinishGravity) {
 
 // CGameMovement::AirMove
 DETOUR_B(Server::AirMove) {
-	if (sar_aircontrol.GetInt() >= 2 && server->AllowsMovementChanges()) {
+	if (p2sm_aircontrol.GetInt() >= 2 && server->AllowsMovementChanges()) {
 		return Server::AirMoveBase(thisptr);
 	}
 
@@ -534,23 +534,23 @@ static void setPortalsThruPortals(bool val) {
 #ifdef _WIN32
 	*(uint8_t *)(tfp + Offsets::portalsThruPortals) = val ? 0x00 : 0x0A;
 #else
-	if (sar.game->Is(SourceGame_EIPRelPIC)) {
+	if (p2sm.game->Is(SourceGame_EIPRelPIC)) {
 		*(uint8_t *)(tfp + Offsets::portalsThruPortals) = val ? 0x82 : 0x85;
-	} else if (sar.game->Is(SourceGame_PortalReloaded) || sar.game->Is(SourceGame_PortalStoriesMel)) {
+	} else if (p2sm.game->Is(SourceGame_PortalReloaded) || p2sm.game->Is(SourceGame_PortalStoriesMel)) {
 		*(uint8_t *)(tfp + Offsets::portalsThruPortals) = val ? 0xEB : 0x74;
 	} else {
 		*(uint8_t *)(tfp + Offsets::portalsThruPortals) = val ? 0x85 : 0x84;
 	}
 #endif
 }
-Variable sar_portals_thru_portals("sar_portals_thru_portals", "0", "Allow firing portals through portals.\n");
+Variable p2sm_portals_thru_portals("p2sm_portals_thru_portals", "0", "Allow firing portals through portals.\n");
 // cvar callbacks dont want to fucking work so we'll just do this bs
 ON_EVENT(PRE_TICK) {
-	setAircontrol(server->AllowsMovementChanges() ? sar_aircontrol.GetInt() : 0);
-	setPortalsThruPortals(sv_cheats.GetBool() && sar_portals_thru_portals.GetBool());
+	setAircontrol(server->AllowsMovementChanges() ? p2sm_aircontrol.GetInt() : 0);
+	setPortalsThruPortals(sv_cheats.GetBool() && p2sm_portals_thru_portals.GetBool());
 }
 
-Variable sar_transition_timer("sar_transition_timer", "0", "Output how slow your dialogue fade was.\n");
+Variable p2sm_transition_timer("p2sm_transition_timer", "0", "Output how slow your dialogue fade was.\n");
 static int transition_time;
 
 extern Hook g_AcceptInputHook;
@@ -611,7 +611,7 @@ static void __cdecl AcceptInput_Hook(void *thisptr, const char *inputName, void 
 		free(data);
 	}
 
-	if (sar_show_entinp.GetBool() && sv_cheats.GetBool()) {
+	if (p2sm_show_entinp.GetBool() && sv_cheats.GetBool()) {
 		console->Print("%.4d %s.%s(%s)\n", session->GetTick(), entName, inputName, parameter.ToString());
 	}
 
@@ -627,7 +627,7 @@ static void __cdecl AcceptInput_Hook(void *thisptr, const char *inputName, void 
 		}
 	}
 
-	if (sar_transition_timer.GetBool()) {
+	if (p2sm_transition_timer.GetBool()) {
 		bool start = false, end = false;
 		if (engine->IsCoop()) {
 			if (strstr(entName, "relay_exit_succeed") && !strcasecmp(inputName, "Enable"))
@@ -709,7 +709,7 @@ ON_EVENT(SESSION_START) {
 
 // CServerGameDLL::GameFrame
 DETOUR(Server::GameFrame, bool simulating) {
-	if (sar_tick_debug.GetInt() >= 3 || (sar_tick_debug.GetInt() >= 2 && simulating)) {
+	if (p2sm_tick_debug.GetInt() >= 3 || (p2sm_tick_debug.GetInt() >= 2 && simulating)) {
 		int host, server, client;
 		engine->GetTicks(host, server, client);
 		console->Print("CServerGameDLL::GameFrame %s (host=%d server=%d client=%d)\n", simulating ? "simulating" : "non-simulating", host, server, client);
@@ -757,7 +757,7 @@ DETOUR_T(void, Server::OnRemoveEntity, IHandleEntity *ent, CBaseHandle handle) {
 			g_ent_slot_serial[i].done = true;
 		}
 	}
-	if (!hasSerialChanged && sar_prevent_ehm.GetBool()) {
+	if (!hasSerialChanged && p2sm_prevent_ehm.GetBool()) {
 		// we're about to increment this entity's serial - if it's about to hit
 		// 0x4000, double-increment it so that can't happen
 		if (info->m_SerialNumber == 0x3FFF) {
@@ -785,13 +785,13 @@ static void resetCoopProgress() {
 static int g_sendResetDoneAt = -1;
 static void(__rescall *CreateViewModel)(void *, int);
 
-Variable sar_fix_viewmodel_bug("sar_fix_viewmodel_bug", "0", "Fixes the viewmodel seemingly randomly disappearing.\n");
+Variable p2sm_fix_viewmodel_bug("p2sm_fix_viewmodel_bug", "0", "Fixes the viewmodel seemingly randomly disappearing.\n");
 
 ON_EVENT(SESSION_START) {
 	g_sendResetDoneAt = -1;
 
 	/* spawn viewmodel if it doesn't exist */
-	if (sar_fix_viewmodel_bug.GetBool())
+	if (p2sm_fix_viewmodel_bug.GetBool())
 		if (CreateViewModel && !engine->IsCoop() && !entityList->GetEntityInfoByClassName("viewmodel") && !engine->demoplayer->IsPlaying())
 			CreateViewModel(server->GetPlayer(1), 0);
 }
@@ -854,7 +854,7 @@ bool Server::Init() {
 		auto GetIServerEntity = g_ServerTools->Original(Offsets::GetIServerEntity);
 		Memory::Deref(GetIServerEntity + Offsets::m_EntPtrArray, &this->m_EntPtrArray);
 #ifndef _WIN32
-		if (sar.game->Is(SourceGame_EIPRelPIC)) {
+		if (p2sm.game->Is(SourceGame_EIPRelPIC)) {
 			this->m_EntPtrArray = (CEntInfo *)((uintptr_t)this->m_EntPtrArray + 4);
 		}
 #endif
@@ -952,14 +952,14 @@ bool Server::Init() {
 		g_check_stuck_code = (void *)code;
 	}
 
-	if (sar.game->Is(SourceGame_Portal2 | SourceGame_Portal2_2011)) {
+	if (p2sm.game->Is(SourceGame_Portal2 | SourceGame_Portal2_2011)) {
 		Server::IsInPVS = (Server::_IsInPVS)Memory::Scan(this->Name(), Offsets::IsInPVS);
 		g_IsInPVS_Hook.SetFunc(IsInPVS);
 	}
 
 	NetMessage::RegisterHandler(RESET_COOP_PROGRESS_MESSAGE_TYPE, &netResetCoopProgress);
 
-	if (sar.game->Is(SourceGame_PortalStoriesMel)) {
+	if (p2sm.game->Is(SourceGame_PortalStoriesMel)) {
 		auto fire_rocket_projectile = Command("fire_rocket_projectile");
 		if (!!fire_rocket_projectile) {
 			auto callback = uintptr_t(fire_rocket_projectile.ThisPtr()->m_fnCommandCallback);
@@ -967,7 +967,7 @@ bool Server::Init() {
 		}
 	}
 
-	if (sar.game->Is(SourceGame_Portal2 | SourceGame_Portal2_2011)) {
+	if (p2sm.game->Is(SourceGame_Portal2 | SourceGame_Portal2_2011)) {
 		CreateViewModel = Memory::Read<void(__rescall *)(void *, int)>(Memory::Scan(this->Name(), Offsets::CreateViewModel, 1));
 	}
 
@@ -989,16 +989,16 @@ bool Server::Init() {
 
 	return this->hasLoaded = this->g_GameMovement && this->g_ServerGameDLL;
 }
-CON_COMMAND(sar_coop_reset_progress, "sar_coop_reset_progress - resets all coop progress\n") {
+CON_COMMAND(p2sm_coop_reset_progress, "p2sm_coop_reset_progress - resets all coop progress\n") {
 	if (engine->IsCoop()) {
 		NetMessage::SendMsg(RESET_COOP_PROGRESS_MESSAGE_TYPE, nullptr, 0);
 		resetCoopProgress();
 		if (engine->IsSplitscreen()) Event::Trigger<Event::COOP_RESET_DONE>({});
 	}
 }
-CON_COMMAND(sar_give_fly, "sar_give_fly [n] - gives the player in slot n (0 by default) preserved crouchfly.\n") {
-	if (args.ArgC() > 2) return console->Print(sar_give_fly.ThisPtr()->m_pszHelpString);
-	if (!sv_cheats.GetBool()) return console->Print("sar_give_fly requires sv_cheats.\n");
+CON_COMMAND(p2sm_give_fly, "p2sm_give_fly [n] - gives the player in slot n (0 by default) preserved crouchfly.\n") {
+	if (args.ArgC() > 2) return console->Print(p2sm_give_fly.ThisPtr()->m_pszHelpString);
+	if (!sv_cheats.GetBool()) return console->Print("p2sm_give_fly requires sv_cheats.\n");
 	int slot = args.ArgC() == 2 ? atoi(args[1]) : 0;
 	void *player = server->GetPlayer(slot + 1);
 	if (player) {
@@ -1006,9 +1006,9 @@ CON_COMMAND(sar_give_fly, "sar_give_fly [n] - gives the player in slot n (0 by d
 		console->Print("Gave fly to player %d\n", slot);
 	}
 }
-CON_COMMAND(sar_give_betsrighter, "sar_give_betsrighter [n] - gives the player in slot n (0 by default) betsrighter.\n") {
-	if (args.ArgC() > 2) return console->Print(sar_give_betsrighter.ThisPtr()->m_pszHelpString);
-	if (!sv_cheats.GetBool()) return console->Print("sar_give_betsrighter requires sv_cheats.\n");
+CON_COMMAND(p2sm_give_betsrighter, "p2sm_give_betsrighter [n] - gives the player in slot n (0 by default) betsrighter.\n") {
+	if (args.ArgC() > 2) return console->Print(p2sm_give_betsrighter.ThisPtr()->m_pszHelpString);
+	if (!sv_cheats.GetBool()) return console->Print("p2sm_give_betsrighter requires sv_cheats.\n");
 	int slot = args.ArgC() == 2 ? atoi(args[1]) : 0;
 	ServerEnt *player = server->GetPlayer(slot + 1);
 	if (player) {
@@ -1020,7 +1020,7 @@ DETOUR_COMMAND(Server::say) {
 	auto clientidx = UTIL_GetCommandClientIndex();
 	if (args.ArgC() != 2 ||
 		Utils::StartsWith(args[1], "&^") ||
-		!strcmp(args[1], SAR_MSG_HELLO) ||
+		!strcmp(args[1], P2SM_MSG_HELLO) ||
 		!networkManager.HandleGhostSay(args[1], clientidx)) {
 		g_wasChatType = 0;
 		Server::say_callback(args);
@@ -1038,9 +1038,9 @@ void Server::Shutdown() {
 
 Server *server;
 
-CON_COMMAND(sar_paint_reseed, "sar_paint_reseed <seed> - re-seed all paint sprayers in the map to the given value (-9999 to 9999 inclusive)\n") {
+CON_COMMAND(p2sm_paint_reseed, "p2sm_paint_reseed <seed> - re-seed all paint sprayers in the map to the given value (-9999 to 9999 inclusive)\n") {
 	if (args.ArgC() != 2) {
-		console->Print(sar_paint_reseed.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_paint_reseed.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
@@ -1053,7 +1053,7 @@ CON_COMMAND(sar_paint_reseed, "sar_paint_reseed <seed> - re-seed all paint spray
 	}
 
 	if (!sv_cheats.GetBool()) {
-		console->Print("sar_paint_reseed requires sv_cheats\n");
+		console->Print("p2sm_paint_reseed requires sv_cheats\n");
 		return;
 	}
 

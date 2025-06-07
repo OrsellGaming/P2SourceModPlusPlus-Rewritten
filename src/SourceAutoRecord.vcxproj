@@ -14,20 +14,20 @@
     <ProjectGuid>{3F6459A9-566E-4CAC-A412-C03FF51D67E9}</ProjectGuid>
     <RootNamespace>SourceAutoRecord</RootNamespace>
     <ProjectName>SourceAutoRecord</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
@@ -50,13 +50,13 @@
     <SourcePath>$(SourcePath)</SourcePath>
     <IncludePath>$(IncludePath);$(SolutionDir)\lib</IncludePath>
     <OutDir>$(SolutionDir)\bin\</OutDir>
-    <TargetName>sar</TargetName>
+    <TargetName>p2sm</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetExt>.dll</TargetExt>
     <OutDir>$(SolutionDir)\bin\</OutDir>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\lib;$(ProjectDir)</IncludePath>
-    <TargetName>sar</TargetName>
+    <TargetName>p2sm</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -135,7 +135,126 @@
     <_WildCardClInclude Include=".\**\*.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="@(_WildCardClCompile)" Exclude="Features\Pathmatch.cpp" />
+    <ClCompile Include="..\lib\minhook\buffer.c" />
+    <ClCompile Include="..\lib\minhook\hde\hde32.c" />
+    <ClCompile Include="..\lib\minhook\hde\hde64.c" />
+    <ClCompile Include="..\lib\minhook\hook.c" />
+    <ClCompile Include="..\lib\minhook\trampoline.c" />
+    <ClCompile Include=".\Cheats.cpp" />
+    <ClCompile Include=".\Command.cpp" />
+    <ClCompile Include=".\CrashHandler.cpp" />
+    <ClCompile Include=".\Entity.cpp" />
+    <ClCompile Include=".\Event.cpp" />
+    <ClCompile Include=".\Features\AchievementTracker.cpp" />
+    <ClCompile Include=".\Features\Camera.cpp" />
+    <ClCompile Include=".\Features\ChapterMenu.cpp" />
+    <ClCompile Include=".\Features\ClassDumper.cpp" />
+    <ClCompile Include=".\Features\ConfigPlus.cpp" />
+    <ClCompile Include=".\Features\Cvars.cpp" />
+    <ClCompile Include=".\Features\DiscordRichPresence.cpp" />
+    <ClCompile Include=".\Features\EntityList.cpp" />
+    <ClCompile Include=".\Features\Feature.cpp" />
+    <ClCompile Include=".\Features\FovChanger.cpp" />
+    <ClCompile Include=".\Features\Hud\AimPointHud.cpp" />
+    <ClCompile Include=".\Features\Hud\CheatWarn.cpp" />
+    <ClCompile Include=".\Features\Hud\Crosshair.cpp" />
+    <ClCompile Include=".\Features\Hud\EHMDebugHud.cpp" />
+    <ClCompile Include=".\Features\Hud\Hud.cpp" />
+    <ClCompile Include=".\Features\Hud\InputHud.cpp" />
+    <ClCompile Include=".\Features\Hud\LPHud.cpp" />
+    <ClCompile Include=".\Features\Hud\Minimap.cpp" />
+    <ClCompile Include=".\Features\Hud\PerformanceHud.cpp" />
+    <ClCompile Include=".\Features\Hud\PlacementHelperHud.cpp" />
+    <ClCompile Include=".\Features\Hud\PortalgunHud.cpp" />
+    <ClCompile Include=".\Features\Hud\PortalPlacement.cpp" />
+    <ClCompile Include=".\Features\Hud\RhythmGame.cpp" />
+    <ClCompile Include=".\Features\Hud\ScrollSpeed.cpp" />
+    <ClCompile Include=".\Features\Hud\Toasts.cpp" />
+    <ClCompile Include=".\Features\Hud\VelocityGraph.cpp" />
+    <ClCompile Include=".\Features\Hud\VphysHud.cpp" />
+    <ClCompile Include=".\Features\Hud\Watermark.cpp" />
+    <ClCompile Include=".\Features\Listener.cpp" />
+    <ClCompile Include=".\Features\Metronome.cpp" />
+    <ClCompile Include=".\Features\NetMessage.cpp" />
+    <ClCompile Include=".\Features\OverlayRender.cpp" />
+    <ClCompile Include=".\Features\PlacementScanner.cpp" />
+    <ClCompile Include=".\Features\RNGManip.cpp" />
+    <ClCompile Include=".\Features\SeasonalASCII.cpp" />
+    <ClCompile Include=".\Features\Session.cpp" />
+    <ClCompile Include=".\Features\Stats\JumpStats.cpp" />
+    <ClCompile Include=".\Features\Stats\Stats.cpp" />
+    <ClCompile Include=".\Features\Stats\StatsCounter.cpp" />
+    <ClCompile Include=".\Features\Stats\StepStats.cpp" />
+    <ClCompile Include=".\Features\Stats\Sync.cpp" />
+    <ClCompile Include=".\Features\Stats\VelocityStats.cpp" />
+    <ClCompile Include=".\Features\SteamTimeline.cpp" />
+    <ClCompile Include=".\Features\StepCounter.cpp" />
+    <ClCompile Include=".\Features\Stitcher.cpp" />
+    <ClCompile Include=".\Features\Summary.cpp" />
+    <ClCompile Include=".\Features\Teleporter.cpp" />
+    <ClCompile Include=".\Features\Timer\PauseTimer.cpp" />
+    <ClCompile Include=".\Features\Timer\Timer.cpp" />
+    <ClCompile Include=".\Features\Timer\TimerAverage.cpp" />
+    <ClCompile Include=".\Features\Timer\TimerCheckPoints.cpp" />
+    <ClCompile Include=".\Features\TimescaleDetect.cpp" />
+    <ClCompile Include=".\Features\TwitchIntegration.cpp" />
+    <ClCompile Include=".\Features\Updater.cpp" />
+    <ClCompile Include=".\Features\WindowResizer.cpp" />
+    <ClCompile Include=".\Features\WorkshopList.cpp" />
+    <ClCompile Include=".\Game.cpp" />
+    <ClCompile Include=".\Games\ApertureTag.cpp" />
+    <ClCompile Include=".\Games\BeginnersGuide.cpp" />
+    <ClCompile Include=".\Games\INFRA.cpp" />
+    <ClCompile Include=".\Games\Portal2.cpp" />
+    <ClCompile Include=".\Games\Portal2_2011.cpp" />
+    <ClCompile Include=".\Games\PortalReloaded.cpp" />
+    <ClCompile Include=".\Games\PortalStoriesMel.cpp" />
+    <ClCompile Include=".\Games\StanleyParable.cpp" />
+    <ClCompile Include=".\Games\ThinkingWithTimeMachine.cpp" />
+    <ClCompile Include=".\Interface.cpp" />
+    <ClCompile Include=".\Modules\Client.cpp" />
+    <ClCompile Include=".\Modules\Console.cpp" />
+    <ClCompile Include=".\Modules\Engine.cpp" />
+    <ClCompile Include=".\Modules\EngineDemoPlayer.cpp" />
+    <ClCompile Include=".\Modules\EngineDemoRecorder.cpp" />
+    <ClCompile Include=".\Modules\FileSystem.cpp" />
+    <ClCompile Include=".\Modules\InputSystem.cpp" />
+    <ClCompile Include=".\Modules\Matchmaking.cpp" />
+    <ClCompile Include=".\Modules\MaterialSystem.cpp" />
+    <ClCompile Include=".\Modules\Module.cpp" />
+    <ClCompile Include=".\Modules\Scheme.cpp" />
+    <ClCompile Include=".\Modules\Server.cpp" />
+    <ClCompile Include=".\Modules\SteamAPI.cpp" />
+    <ClCompile Include=".\Modules\Surface.cpp" />
+    <ClCompile Include=".\Modules\Tier1.cpp" />
+    <ClCompile Include=".\Modules\VGui.cpp" />
+    <ClCompile Include=".\Offsets.cpp" />
+    <ClCompile Include=".\Plugin.cpp" />
+    <ClCompile Include=".\SAR.cpp" />
+    <ClCompile Include=".\Scheduler.cpp" />
+    <ClCompile Include=".\Utils.cpp" />
+    <ClCompile Include=".\Utils\ed25519\add_scalar.cpp" />
+    <ClCompile Include=".\Utils\ed25519\fe.cpp" />
+    <ClCompile Include=".\Utils\ed25519\ge.cpp" />
+    <ClCompile Include=".\Utils\ed25519\keypair.cpp" />
+    <ClCompile Include=".\Utils\ed25519\key_exchange.cpp" />
+    <ClCompile Include=".\Utils\ed25519\sc.cpp" />
+    <ClCompile Include=".\Utils\ed25519\seed.cpp" />
+    <ClCompile Include=".\Utils\ed25519\sha512.cpp" />
+    <ClCompile Include=".\Utils\ed25519\sign.cpp" />
+    <ClCompile Include=".\Utils\ed25519\verify.cpp" />
+    <ClCompile Include=".\Utils\json11.cpp" />
+    <ClCompile Include=".\Utils\lodepng.cpp" />
+    <ClCompile Include=".\Utils\Math.cpp" />
+    <ClCompile Include=".\Utils\Memory.cpp" />
+    <ClCompile Include=".\Utils\NetworkConnection.cpp" />
+    <ClCompile Include=".\Utils\SDK\CViewSetup.cpp" />
+    <ClCompile Include=".\Utils\SDK\EntityEdict.cpp" />
+    <ClCompile Include=".\Utils\SDK\KeyValues.cpp" />
+    <ClCompile Include=".\Utils\SDK\MeshBuilder.cpp" />
+    <ClCompile Include=".\Utils\SDK\ServerPlugin.cpp" />
+    <ClCompile Include=".\Utils\TwitchConnection.cpp" />
+    <ClCompile Include=".\Variable.cpp" />
     <ClInclude Include="@(_WildCardClInclude)" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

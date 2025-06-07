@@ -8,7 +8,7 @@
 #include <Features/OverlayRender.hpp>
 
 
-Variable sar_placement_helper_hud("sar_placement_helper_hud", "0", "Visually displays all portal placement helpers (requires sv_cheats).\n");
+Variable p2sm_placement_helper_hud("p2sm_placement_helper_hud", "0", "Visually displays all portal placement helpers (requires sv_cheats).\n");
 
 static const int g_sphereMeshRings = 8;
 static const int g_sphereMeshSegments = 16;
@@ -63,7 +63,7 @@ ON_EVENT(RENDER) {
 
 	if (!sv_cheats.GetBool()) return;
 	if (!engine->hoststate->m_activeGame) return;
-	if (!sar_placement_helper_hud.GetBool()) return;
+	if (!p2sm_placement_helper_hud.GetBool()) return;
 
 	for (auto index = 0; index < Offsets::NUM_ENT_ENTRIES; ++index) {
 		auto info = entityList->GetEntityInfoByIndex(index);
@@ -88,7 +88,7 @@ ON_EVENT(RENDER) {
 		auto deferringToPortal = placementHelper->field<bool>("m_bDeferringToPortal");
 
 		auto currentTime = server->gpGlobals->curtime;
-		auto remainingBlockedTimeTicks = (int)(fmaxf(disableTime - currentTime, 0.0f) * sar.game->Tickrate());
+		auto remainingBlockedTimeTicks = (int)(fmaxf(disableTime - currentTime, 0.0f) * p2sm.game->Tickrate());
 		auto placementBlocked = deferringToPortal || (remainingBlockedTimeTicks > 0);
 
 		auto sphereColor = Color(0, 200, 0, 64);

@@ -26,11 +26,11 @@ REDECL(EngineDemoPlayer::stopdemo_callback);
 
 static std::vector<std::string> g_demoBlacklist;
 
-Variable sar_demo_blacklist("sar_demo_blacklist", "0", "Stop a set of commands from being run by demo playback.\n");
-Variable sar_demo_blacklist_all("sar_demo_blacklist_all", "0", "Stop all commands from being run by demo playback.\n");
-CON_COMMAND(sar_demo_blacklist_addcmd, "sar_demo_blacklist_addcmd <command> - add a command to the demo blacklist\n") {
+Variable p2sm_demo_blacklist("p2sm_demo_blacklist", "0", "Stop a set of commands from being run by demo playback.\n");
+Variable p2sm_demo_blacklist_all("p2sm_demo_blacklist_all", "0", "Stop all commands from being run by demo playback.\n");
+CON_COMMAND(p2sm_demo_blacklist_addcmd, "p2sm_demo_blacklist_addcmd <command> - add a command to the demo blacklist\n") {
 	if (args.ArgC() == 1) {
-		console->Print(sar_demo_blacklist_addcmd.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_demo_blacklist_addcmd.ThisPtr()->m_pszHelpString);
 	} else {
 		g_demoBlacklist.push_back({args.m_pArgSBuffer + args.m_nArgv0Size});
 	}
@@ -48,7 +48,7 @@ static bool startsWith(const char *pre, const char *str) {
 }
 
 bool EngineDemoPlayer::ShouldBlacklistCommand(const char *cmd) {
-	if (startsWith("sar_demo_blacklist", cmd)) {
+	if (startsWith("p2sm_demo_blacklist", cmd)) {
 		return true;
 	}
 
@@ -57,15 +57,15 @@ bool EngineDemoPlayer::ShouldBlacklistCommand(const char *cmd) {
 		return true;
 	}
 
-	// SPECIAL CASE: these commands override sar_demo_blacklist_all, since
+	// SPECIAL CASE: these commands override p2sm_demo_blacklist_all, since
 	// without them coop timing doesn't work
 	if (startsWith("playvideo_end_level_transition", cmd)) return false;
 	if (startsWith("stop_transition_videos_fadeout", cmd)) return false;
 	if (startsWith("ss_force_primary_fullscreen", cmd)) return false;
 
-	if (sar_demo_blacklist_all.GetBool()) return true;
+	if (p2sm_demo_blacklist_all.GetBool()) return true;
 
-	if (sar_demo_blacklist.GetBool()) {
+	if (p2sm_demo_blacklist.GetBool()) {
 		for (auto &s : g_demoBlacklist) {
 			if (startsWith(s.c_str(), cmd)) {
 				return true;
@@ -76,7 +76,7 @@ bool EngineDemoPlayer::ShouldBlacklistCommand(const char *cmd) {
 	return false;
 }
 
-static Variable sar_demo_remove_broken("sar_demo_remove_broken", "1", "Whether to remove broken frames from demo playback\n");
+static Variable p2sm_demo_remove_broken("p2sm_demo_remove_broken", "1", "Whether to remove broken frames from demo playback\n");
 
 static bool g_waitingForSession = false;
 ON_EVENT(SESSION_START) { g_waitingForSession = false; }
@@ -102,7 +102,7 @@ void EngineDemoPlayer::HandlePlaybackFix() {
 		}
 	} else if (state == 1) {
 		auto hoststate_run = HS_RUN;
-		if (sar.game->Is(SourceGame_INFRA)) hoststate_run = INFRA_HS_RUN;
+		if (p2sm.game->Is(SourceGame_INFRA)) hoststate_run = INFRA_HS_RUN;
 		if (engine->hoststate->m_currentState == hoststate_run && !g_waitingForSession) {
 			state = 2;
 		}
@@ -186,7 +186,7 @@ void EngineDemoPlayer::CustomDemoData(char *data, size_t length) {
 		size_t inputnameLen = strlen(inputname);
 		char *parameter = data + 4 + targetnameLen + classnameLen + inputnameLen;
 
-		if (sar_show_entinp.GetBool() && sv_cheats.GetBool()) {
+		if (p2sm_show_entinp.GetBool() && sv_cheats.GetBool()) {
 			console->Print("%.4d %s.%s(%s)\n", this->GetTick(), targetname, inputname, parameter);
 		}
 
@@ -253,8 +253,8 @@ DETOUR(EngineDemoPlayer::StartPlayback, const char *filename, bool bAsTimeDemo) 
 			engine->demoplayer->levelName = demo.mapName;
 			g_demoStart = demo.firstPositivePacketTick;
 			Renderer::segmentEndTick = demo.segmentTicks;
-			if (!sar_demo_remove_broken.GetBool()) Event::Trigger<Event::DEMO_START>({});
-			g_demoFixing = sar_demo_remove_broken.GetBool();
+			if (!p2sm_demo_remove_broken.GetBool()) Event::Trigger<Event::DEMO_START>({});
+			g_demoFixing = p2sm_demo_remove_broken.GetBool();
 		} else {
 			console->Print("Could not parse \"%s\"!\n", engine->demoplayer->DemoName);
 		}
@@ -281,7 +281,7 @@ DETOUR(EngineDemoPlayer::StopPlayback) {
 	return EngineDemoPlayer::StopPlayback(thisptr);
 }
 
-Variable sar_demo_portal_interp_fix("sar_demo_portal_interp_fix", "1", "Fix eye interpolation through portals in demo playback.\n");
+Variable p2sm_demo_portal_interp_fix("p2sm_demo_portal_interp_fix", "1", "Fix eye interpolation through portals in demo playback.\n");
 
 static inline void matrixAngleTransform(VMatrix mat, QAngle *ang) {
 	Vector forward, up;
@@ -303,7 +303,7 @@ static struct {
 
 void EngineDemoPlayer::OverrideView(ViewSetup *view) {
 	if (!this->IsPlaying()) return;
-	if (!sar_demo_portal_interp_fix.GetBool()) return;
+	if (!p2sm_demo_portal_interp_fix.GetBool()) return;
 
 	int slot = GET_SLOT();
 
@@ -349,7 +349,7 @@ void InterpolateDemoCommand_Detour(void *thisptr, int slot, int target_tick, Dem
 	InterpolateDemoCommand(thisptr, slot, target_tick, prev, next);
 	InterpolateDemoCommand_Hook.Enable();
 
-	if (sar_demo_portal_interp_fix.GetBool()) {
+	if (p2sm_demo_portal_interp_fix.GetBool()) {
 		if (!g_portal_interp_state[slot].set_limits) {
 			g_portal_interp_state[slot].saved_interplimit = Variable("demo_interplimit").GetFloat();
 			g_portal_interp_state[slot].saved_avellimit = Variable("demo_avellimit").GetFloat();
@@ -494,13 +494,13 @@ void EngineDemoPlayer::Shutdown() {
 
 // Commands
 
-DECL_COMMAND_FILE_COMPLETION(sar_startdemos, ".dem", "", 1)
-DECL_COMMAND_FILE_COMPLETION(sar_startdemosfolder, "/", "", 1)
+DECL_COMMAND_FILE_COMPLETION(p2sm_startdemos, ".dem", "", 1)
+DECL_COMMAND_FILE_COMPLETION(p2sm_startdemosfolder, "/", "", 1)
 
-CON_COMMAND_F_COMPLETION(sar_startdemos, "sar_startdemos <demoname> - improved version of startdemos. Use 'stopdemo' to stop playing demos\n", 0, AUTOCOMPLETION_FUNCTION(sar_startdemos)) {
+CON_COMMAND_F_COMPLETION(p2sm_startdemos, "p2sm_startdemos <demoname> - improved version of startdemos. Use 'stopdemo' to stop playing demos\n", 0, AUTOCOMPLETION_FUNCTION(p2sm_startdemos)) {
 	// Always print a useful message for the user if not used correctly
 	if (args.ArgC() != 2) {
-		return console->Print(sar_startdemos.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_startdemos.ThisPtr()->m_pszHelpString);
 	}
 
 	engine->demoplayer->demoQueue.clear();
@@ -509,8 +509,8 @@ CON_COMMAND_F_COMPLETION(sar_startdemos, "sar_startdemos <demoname> - improved v
 
 	std::string dirPath = fileSystem->FindFileSomewhere(name).value_or(name);
 	if (std::filesystem::is_directory(dirPath)) {
-		console->Print("%s is a directory. Using sar_startdemosfolder\n", dirPath.c_str());
-		engine->ExecuteCommand(Utils::ssprintf("sar_startdemosfolder \"%s\"", dirPath.c_str()).c_str());
+		console->Print("%s is a directory. Using p2sm_startdemosfolder\n", dirPath.c_str());
+		engine->ExecuteCommand(Utils::ssprintf("p2sm_startdemosfolder \"%s\"", dirPath.c_str()).c_str());
 		return;
 	}
 
@@ -561,9 +561,9 @@ CON_COMMAND_F_COMPLETION(sar_startdemos, "sar_startdemos <demoname> - improved v
 
 	//Demos are played in Engine::Frame
 }
-CON_COMMAND_F_COMPLETION(sar_startdemosfolder, "sar_startdemosfolder <folder name> - plays all the demos in the specified folder by alphabetic order\n", 0, AUTOCOMPLETION_FUNCTION(sar_startdemosfolder)) {
+CON_COMMAND_F_COMPLETION(p2sm_startdemosfolder, "p2sm_startdemosfolder <folder name> - plays all the demos in the specified folder by alphabetic order\n", 0, AUTOCOMPLETION_FUNCTION(p2sm_startdemosfolder)) {
 	if (args.ArgC() < 2) {
-		return console->Print(sar_startdemosfolder.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_startdemosfolder.ThisPtr()->m_pszHelpString);
 	}
 
 	engine->demoplayer->demoQueue.clear();
@@ -629,9 +629,9 @@ CON_COMMAND_F_COMPLETION(sar_startdemosfolder, "sar_startdemosfolder <folder nam
 
 	EngineDemoPlayer::stopdemo_callback(args);
 }
-CON_COMMAND_COMPLETION(sar_skiptodemo, "sar_skiptodemo <demoname> - skip demos in demo queue to this demo\n", ({engine->demoplayer->demoQueue})) {
+CON_COMMAND_COMPLETION(p2sm_skiptodemo, "p2sm_skiptodemo <demoname> - skip demos in demo queue to this demo\n", ({engine->demoplayer->demoQueue})) {
 	if (args.ArgC() < 2) {
-		return console->Print(sar_skiptodemo.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_skiptodemo.ThisPtr()->m_pszHelpString);
 	}
 
 	auto it = std::find(engine->demoplayer->demoQueue.begin(), engine->demoplayer->demoQueue.end(), args[1]);
@@ -642,14 +642,14 @@ CON_COMMAND_COMPLETION(sar_skiptodemo, "sar_skiptodemo <demoname> - skip demos i
 
 	EngineDemoPlayer::stopdemo_callback(args);
 }
-CON_COMMAND(sar_nextdemo, "sar_nextdemo - plays the next demo in demo queue\n") {
+CON_COMMAND(p2sm_nextdemo, "p2sm_nextdemo - plays the next demo in demo queue\n") {
 	if (++engine->demoplayer->currentDemoID >= engine->demoplayer->demoQueueSize) {
 		return engine->demoplayer->ClearDemoQueue();
 	}
 
 	EngineDemoPlayer::stopdemo_callback(args);
 }
-CON_COMMAND(sar_demo_replay, "sar_demo_replay - play the last recorded or played demo\n") {
+CON_COMMAND(p2sm_demo_replay, "p2sm_demo_replay - play the last recorded or played demo\n") {
 	if (engine->demoplayer->replayName.size() == 0) {
 		return console->Print("No demo to replay\n");
 	}

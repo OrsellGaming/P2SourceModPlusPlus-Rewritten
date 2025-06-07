@@ -23,27 +23,27 @@
 #include <chrono>
 #include <thread>
 
-Variable sar_loads_uncap("sar_loads_uncap", "0", 0, 1, "Temporarily set fps_max to 0 during loads\n");
-Variable sar_loads_norender("sar_loads_norender", "0", 0, 1, "Temporarily set mat_norendering to 1 during loads\n");
+Variable p2sm_loads_uncap("p2sm_loads_uncap", "0", 0, 1, "Temporarily set fps_max to 0 during loads\n");
+Variable p2sm_loads_norender("p2sm_loads_norender", "0", 0, 1, "Temporarily set mat_norendering to 1 during loads\n");
 
-Variable sar_load_delay("sar_load_delay", "0", 0, "Delay for this number of milliseconds at the end of a load.\n");
+Variable p2sm_load_delay("p2sm_load_delay", "0", 0, "Delay for this number of milliseconds at the end of a load.\n");
 
-Variable sar_patch_viewcontrol("sar_patch_viewcontrol", "1", "Disable camera controllers before changing levels to prevent visual glitches.\n");
+Variable p2sm_patch_viewcontrol("p2sm_patch_viewcontrol", "1", "Disable camera controllers before changing levels to prevent visual glitches.\n");
 
 static int g_autovoidclip = 0;
-CON_COMMAND(sar_auto_voidclip_pause, "sar_auto_voidclip_pause <command> - runs the specified command, and automatically voidclip-pauses on the next load\n") {
+CON_COMMAND(p2sm_auto_voidclip_pause, "p2sm_auto_voidclip_pause <command> - runs the specified command, and automatically voidclip-pauses on the next load\n") {
 	if (!sv_cheats.GetBool()) {
-		console->Print("sar_auto_voidclip_pause requires sv_cheats 1.\n");
+		console->Print("p2sm_auto_voidclip_pause requires sv_cheats 1.\n");
 		return;
 	}
 
 	if (args.ArgC() < 2) {
-		console->Print(sar_auto_voidclip_pause.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_auto_voidclip_pause.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
 	g_autovoidclip = 1;
-	engine->ExecuteCommand("sar_fast_load_preset sla");
+	engine->ExecuteCommand("p2sm_fast_load_preset sla");
 	engine->ExecuteCommand(args.m_pArgSBuffer + args.m_nArgv0Size);
 }
 
@@ -87,7 +87,7 @@ void Session::Started(bool menu) {
 		console->Print("Session started! (menu)\n");
 		this->Rebase(engine->GetTick());
 
-		if (sar_speedrun_stop_in_menu.isRegistered && sar_speedrun_stop_in_menu.GetBool()) {
+		if (p2sm_speedrun_stop_in_menu.isRegistered && p2sm_speedrun_stop_in_menu.GetBool()) {
 			SpeedrunTimer::Stop("menu");
 		} else {
 			SpeedrunTimer::Resume();
@@ -143,7 +143,7 @@ void Session::Ended() {
 	}
 
 	// Disable any view controllers (cutscene cameras) that might be active
-	if (!sar.game->Is(SourceGame_INFRA) && !engine->IsOrange() && sar_patch_viewcontrol.GetBool()) {
+	if (!p2sm.game->Is(SourceGame_INFRA) && !engine->IsOrange() && p2sm_patch_viewcontrol.GetBool()) {
 		if (engine->GetCurrentMapName() != "sp_a1_wakeup") { // Betsrighter exists
 			for (auto index = 0; index < Offsets::NUM_ENT_ENTRIES; ++index) {
 				auto info = entityList->GetEntityInfoByIndex(index);
@@ -174,7 +174,7 @@ void Session::Ended() {
 	}
 
 	if (timer->isRunning) {
-		if (sar_timer_always_running.GetBool()) {
+		if (p2sm_timer_always_running.GetBool()) {
 			timer->Save(engine->GetTick());
 			console->Print("Timer paused: %i (%.3f)!\n", timer->totalTicks, engine->ToTime(timer->totalTicks));
 		} else {
@@ -183,7 +183,7 @@ void Session::Ended() {
 		}
 	}
 
-	auto reset = sar_stats_auto_reset.GetInt();
+	auto reset = p2sm_stats_auto_reset.GetInt();
 	if ((reset == 1 && (engine->m_bLoadgame && !*engine->m_bLoadgame)) || reset >= 2) {
 		stats->ResetAll();
 	}
@@ -224,7 +224,7 @@ void Session::Ended() {
 void Session::Changed() {
 	console->DevMsg("m_currentState = %i\n", engine->hoststate->m_currentState);
 
-	if (sar.game->Is(SourceGame_INFRA)) {
+	if (p2sm.game->Is(SourceGame_INFRA)) {
 		if (engine->hoststate->m_currentState == INFRA_HS_LOAD_GAME_WITHOUT_RESTART
 			|| engine->hoststate->m_currentState == INFRA_HS_CHANGE_LEVEL_SP
 			|| engine->hoststate->m_currentState == INFRA_HS_CHANGE_LEVEL_MP
@@ -280,8 +280,8 @@ void Session::Changed(int state) {
 		this->Started();
 		engine->demorecorder->queuedCommands.clear();
 
-		if (sar_load_delay.GetInt()) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(sar_load_delay.GetInt()));
+		if (p2sm_load_delay.GetInt()) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(p2sm_load_delay.GetInt()));
 		}
 	} else if (state == SIGNONSTATE_PRESPAWN) {
 		this->ResetLoads();
@@ -292,22 +292,22 @@ void Session::Changed(int state) {
 }
 
 void Session::DoFastLoads() {
-	if (sar_loads_uncap.GetBool()) {
+	if (p2sm_loads_uncap.GetBool()) {
 		this->oldFpsMax = fps_max.GetInt();
 		fps_max.SetValue(0);
 	}
 
-	if (sar_loads_norender.GetBool()) {
+	if (p2sm_loads_norender.GetBool()) {
 		mat_norendering.SetValue(1);
 	}
 }
 
 void Session::ResetLoads() {
-	if (sar_loads_uncap.GetBool() && fps_max.GetInt() == 0) {
+	if (p2sm_loads_uncap.GetBool() && fps_max.GetInt() == 0) {
 		fps_max.SetValue(this->oldFpsMax);
 	}
 
-	if (sar_loads_norender.GetBool()) {
+	if (p2sm_loads_norender.GetBool()) {
 		mat_norendering.SetValue(0);
 	}
 }
@@ -322,7 +322,7 @@ HUD_ELEMENT2(last_session, "0", "Draws value of latest completed session.\n", Hu
 	ctx->DrawElement("last session: %i (%.3f)", session->lastSession, engine->ToTime(session->lastSession));
 }
 HUD_ELEMENT2(sum, "0", "Draws summary value of sessions.\n", HudType_InGame | HudType_Paused | HudType_Menu | HudType_LoadingScreen) {
-	if (summary->isRunning && sar_sum_during_session.GetBool()) {
+	if (summary->isRunning && p2sm_sum_during_session.GetBool()) {
 		auto tick = (session->isRunning) ? session->GetTick() : 0;
 		auto time = engine->ToTime(tick);
 		ctx->DrawElement("sum: %i (%.3f)", summary->totalTicks + tick, engine->ToTime(summary->totalTicks) + time);

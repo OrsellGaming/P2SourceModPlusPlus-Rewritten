@@ -216,11 +216,11 @@ static ConsoleListener *g_svarListener;
 static std::string g_svarListenerTarget;
 static std::string g_svarListenerOutput;
 
-CON_COMMAND_F(_sar_svar_capture_stop, "Internal SAR command. Do not use\n", FCVAR_DONTRECORD | FCVAR_HIDDEN) {
+CON_COMMAND_F(_p2sm_svar_capture_stop, "Internal SAR command. Do not use\n", FCVAR_DONTRECORD | FCVAR_HIDDEN) {
 	delete g_svarListener;
 	g_svarListener = nullptr;
 
-	_sar_svar_capture_stop.ThisPtr()->m_nFlags |= FCVAR_HIDDEN;
+	_p2sm_svar_capture_stop.ThisPtr()->m_nFlags |= FCVAR_HIDDEN;
 
 	std::string out = g_svarListenerOutput;
 	out.erase(std::remove(out.begin(), out.end(), '\n'), out.end());
@@ -242,14 +242,14 @@ CON_COMMAND_F_COMPLETION(svar_capture, "svar_capture <variable> <command> [args]
 		g_svarListenerOutput += msg;
 	});
 
-	_sar_svar_capture_stop.ThisPtr()->m_nFlags &= ~FCVAR_HIDDEN;
+	_p2sm_svar_capture_stop.ThisPtr()->m_nFlags &= ~FCVAR_HIDDEN;
 
 	// The engine won't let us execute a command during execution of
 	// this one; instead, they're added to the front of the cbuf, to be
 	// executed next. So we have to do this jank to get the output
 	// properly
 	engine->ExecuteCommand(cmd, true);
-	engine->ExecuteCommand("_sar_svar_capture_stop", true);
+	engine->ExecuteCommand("_p2sm_svar_capture_stop", true);
 }
 
 CON_COMMAND_F_COMPLETION(svar_from_cvar, "svar_from_cvar <variable> <cvar> - capture a cvar's value and place it into an svar, removing newlines\n", FCVAR_DONTRECORD, AUTOCOMPLETION_FUNCTION(svar_get)) {
@@ -392,7 +392,7 @@ static void FreeCondition(Condition *c) {
 }
 
 static const char *gameName() {
-	switch (sar.game->GetVersion()) {
+	switch (p2sm.game->GetVersion()) {
 	case SourceGame_ApertureTag: return "aptag";
 	case SourceGame_PortalStoriesMel: return "mel";
 	case SourceGame_ThinkingWithTimeMachine: return "twtm";
@@ -725,7 +725,7 @@ static Condition *ParseCondition(std::queue<Token> toks) {
 
 // }}}
 
-CON_COMMAND_F(sar_get_partner_id, "sar_get_partner_id - Prints your coop partner's steam id\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_get_partner_id, "p2sm_get_partner_id - Prints your coop partner's steam id\n", FCVAR_DONTRECORD) {
 	if (!engine->IsCoop() || engine->IsSplitscreen() || !strcmp("0", engine->GetPartnerSteamID32().c_str())) {
 		console->Print("This command only works in online co-op.\n");
 		return;
@@ -733,14 +733,14 @@ CON_COMMAND_F(sar_get_partner_id, "sar_get_partner_id - Prints your coop partner
 	console->Print("%s\n", engine->GetPartnerSteamID32().c_str());
 }
 
-CON_COMMAND_F(sar_cfg_message, "sar_cfg_message <message> - sends a config message to the other player in coop\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_cfg_message, "p2sm_cfg_message <message> - sends a config message to the other player in coop\n", FCVAR_DONTRECORD) {
 	if (!engine->IsCoop() || engine->IsSplitscreen()) {
 		console->Print("This command only works in online co-op.\n");
 		return;
 	}
 
 	if (args.ArgC() < 2) {
-		return console->Print(sar_cfg_message.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_cfg_message.ThisPtr()->m_pszHelpString);
 	}
 
 	auto str = Utils::ArgContinuation(args, 1);
@@ -814,20 +814,20 @@ CON_COMMAND_F(conds, "conds [<condition> <command>]... [else] - runs the first c
 	}
 }
 
-#define MK_SAR_ON(name, when, immediately)                                                                                                \
+#define MK_P2SM_ON(name, when, immediately)                                                                                                \
 	static std::vector<std::string> _g_execs_##name;                                                                                         \
-	CON_COMMAND_F(sar_on_##name, "sar_on_" #name " <command> [args]... - registers a command to be run " when "\n", FCVAR_DONTRECORD) {      \
+	CON_COMMAND_F(p2sm_on_##name, "p2sm_on_" #name " <command> [args]... - registers a command to be run " when "\n", FCVAR_DONTRECORD) {      \
 		if (args.ArgC() < 2) {                                                                                                                  \
-			return console->Print(sar_on_##name.ThisPtr()->m_pszHelpString);                                                                       \
+			return console->Print(p2sm_on_##name.ThisPtr()->m_pszHelpString);                                                                       \
 		}                                                                                                                                       \
 		const char *cmd = Utils::ArgContinuation(args, 1);                                                  \
 		_g_execs_##name.push_back(std::string(cmd));                                                                                            \
 	}                                                                                                                                        \
-	CON_COMMAND_F(sar_on_##name##_clear, "sar_on_" #name "_clear - clears commands registered on event \"" #name "\"\n", FCVAR_DONTRECORD) { \
+	CON_COMMAND_F(p2sm_on_##name##_clear, "p2sm_on_" #name "_clear - clears commands registered on event \"" #name "\"\n", FCVAR_DONTRECORD) { \
 		console->Print("Cleared %d commands from event \"" #name "\"\n", _g_execs_##name.size());                                               \
 		_g_execs_##name.clear();                                                                                                                \
 	}                                                                                                                                        \
-	CON_COMMAND_F(sar_on_##name##_list, "sar_on_" #name "_list - lists commands registered on event \"" #name "\"\n", FCVAR_DONTRECORD) {     \
+	CON_COMMAND_F(p2sm_on_##name##_list, "p2sm_on_" #name "_list - lists commands registered on event \"" #name "\"\n", FCVAR_DONTRECORD) {     \
 		console->Print("%d commands on event \"" #name "\"\n", _g_execs_##name.size());                                                         \
 		for (auto cmd : _g_execs_##name) {                                                                                                      \
 			console->Print("%s\n", cmd.c_str());                                                                                                   \
@@ -841,25 +841,25 @@ CON_COMMAND_F(conds, "conds [<condition> <command>]... [else] - runs the first c
 
 #define RUN_EXECS(x) _runExecs_##x()
 
-MK_SAR_ON(load, "on session start", true)
-MK_SAR_ON(session_end, "on session end", true)
-MK_SAR_ON(exit, "on game exit", true)
-MK_SAR_ON(demo_start, "when demo playback starts", false)
-MK_SAR_ON(demo_stop, "when demo playback stops", false)
-MK_SAR_ON(flags, "when CM flags are hit", false)
-MK_SAR_ON(coop_reset_done, "when coop reset is completed", false)
-MK_SAR_ON(coop_reset_remote, "when coop reset run remotely", false)
-MK_SAR_ON(coop_spawn, "on coop spawn", true)
-MK_SAR_ON(config_exec, "on config.cfg exec", true)
-MK_SAR_ON(tas_start, "when TAS script playback starts", true)
-MK_SAR_ON(tas_end, "when TAS script playback ends", true)
-MK_SAR_ON(pb, "when auto-submitter detects PB", true)
-MK_SAR_ON(not_pb, "when auto-submitter detects not PB", true)
-MK_SAR_ON(cfg_message, "when partner sends a custom message (_sar_cfg_message svar)", true)
-MK_SAR_ON(speedrun_finish, "when a speedrun finishes", true)
-MK_SAR_ON(renderer_start, "when renderer starts", true)
-MK_SAR_ON(renderer_finish, "when renderer finishes", true)
-MK_SAR_ON(stuck, "when the player gets stuck (singleplayer) (requires cheats)", true)
+MK_P2SM_ON(load, "on session start", true)
+MK_P2SM_ON(session_end, "on session end", true)
+MK_P2SM_ON(exit, "on game exit", true)
+MK_P2SM_ON(demo_start, "when demo playback starts", false)
+MK_P2SM_ON(demo_stop, "when demo playback stops", false)
+MK_P2SM_ON(flags, "when CM flags are hit", false)
+MK_P2SM_ON(coop_reset_done, "when coop reset is completed", false)
+MK_P2SM_ON(coop_reset_remote, "when coop reset run remotely", false)
+MK_P2SM_ON(coop_spawn, "on coop spawn", true)
+MK_P2SM_ON(config_exec, "on config.cfg exec", true)
+MK_P2SM_ON(tas_start, "when TAS script playback starts", true)
+MK_P2SM_ON(tas_end, "when TAS script playback ends", true)
+MK_P2SM_ON(pb, "when auto-submitter detects PB", true)
+MK_P2SM_ON(not_pb, "when auto-submitter detects not PB", true)
+MK_P2SM_ON(cfg_message, "when partner sends a custom message (_p2sm_cfg_message svar)", true)
+MK_P2SM_ON(speedrun_finish, "when a speedrun finishes", true)
+MK_P2SM_ON(renderer_start, "when renderer starts", true)
+MK_P2SM_ON(renderer_finish, "when renderer finishes", true)
+MK_P2SM_ON(stuck, "when the player gets stuck (singleplayer) (requires cheats)", true)
 
 ON_EVENT_P(SESSION_START, 1000000) {
 	RUN_EXECS(load);
@@ -868,7 +868,7 @@ ON_EVENT_P(SESSION_START, 1000000) {
 ON_EVENT(SESSION_END) {
 	RUN_EXECS(session_end);
 }
-ON_EVENT(SAR_UNLOAD) {
+ON_EVENT(P2SM_UNLOAD) {
 	RUN_EXECS(exit);
 }
 ON_EVENT(DEMO_START) {
@@ -903,7 +903,7 @@ ON_EVENT(MAYBE_AUTOSUBMIT) {
 	else RUN_EXECS(not_pb);
 }
 ON_EVENT(CFG_MESSAGE) {
-	SetSvar("_sar_cfg_message", event.message);
+	SetSvar("_p2sm_cfg_message", event.message);
 	RUN_EXECS(cfg_message);
 }
 ON_EVENT(SPEEDRUN_FINISH) {
@@ -975,12 +975,12 @@ struct AliasInfo {
 static std::map<std::string, AliasInfo> g_aliases;
 
 static void _aliasCallback(const CCommand &args) {
-	engine->ExecuteCommand(Utils::ssprintf("sar_alias_run %s", args.m_pArgSBuffer).c_str(), true);
+	engine->ExecuteCommand(Utils::ssprintf("p2sm_alias_run %s", args.m_pArgSBuffer).c_str(), true);
 }
 
-CON_COMMAND_F(sar_alias, "sar_alias <name> [command] [args]... - create an alias, similar to the 'alias' command but not requiring quoting. If no command is specified, prints the given alias\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_alias, "p2sm_alias <name> [command] [args]... - create an alias, similar to the 'alias' command but not requiring quoting. If no command is specified, prints the given alias\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() < 2) {
-		return console->Print(sar_alias.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_alias.ThisPtr()->m_pszHelpString);
 	}
 
 	if (args.ArgC() == 2) {
@@ -1012,9 +1012,9 @@ CON_COMMAND_F(sar_alias, "sar_alias <name> [command] [args]... - create an alias
 	}
 }
 
-CON_COMMAND_F(sar_alias_run, "sar_alias_run <name> [args]... - run a SAR alias, passing on any additional arguments\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_alias_run, "p2sm_alias_run <name> [args]... - run a SAR alias, passing on any additional arguments\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() < 2) {
-		return console->Print(sar_alias_run.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_alias_run.ThisPtr()->m_pszHelpString);
 	}
 
 	auto it = g_aliases.find({args[1]});
@@ -1035,12 +1035,12 @@ CON_COMMAND_F(sar_alias_run, "sar_alias_run <name> [args]... - run a SAR alias, 
 static std::map<std::string, AliasInfo> g_functions;
 
 static void _functionCallback(const CCommand &args) {
-	engine->ExecuteCommand(Utils::ssprintf("sar_function_run %s", args.m_pArgSBuffer).c_str(), true);
+	engine->ExecuteCommand(Utils::ssprintf("p2sm_function_run %s", args.m_pArgSBuffer).c_str(), true);
 }
 
-CON_COMMAND_F(sar_function, "sar_function <name> [command] [args]... - create a function, replacing $1, $2 etc in the command string with the respective argument, and more. If no command is specified, prints the given function\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_function, "p2sm_function <name> [command] [args]... - create a function, replacing $1, $2 etc in the command string with the respective argument, and more. If no command is specified, prints the given function\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() < 2) {
-		return console->Print(sar_function.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_function.ThisPtr()->m_pszHelpString);
 	}
 
 	if (args.ArgC() == 2) {
@@ -1102,7 +1102,7 @@ static void expand(const CCommand &args, std::string body) {
 					}
 					if (arg - 1 < nargs) {
 						// Skip the first n + 1 arguments
-						// (sar_function_run)
+						// (p2sm_function_run)
 						const char *greedy = args.m_pArgSBuffer + args.m_nArgv0Size;
 						while (isspace(*greedy)) ++greedy;
 						for (int j = 1; j < arg + 1; ++j) {
@@ -1160,9 +1160,9 @@ static void expand(const CCommand &args, std::string body) {
 	engine->ExecuteCommand(cmd.c_str(), true);
 }
 
-CON_COMMAND_F(sar_expand, "sar_expand [cmd]... - run a command after expanding svar substitutions\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_expand, "p2sm_expand [cmd]... - run a command after expanding svar substitutions\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() < 2) {
-		return console->Print(sar_expand.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_expand.ThisPtr()->m_pszHelpString);
 	}
 
 	const char *cmd = Utils::ArgContinuation(args, 1);
@@ -1170,9 +1170,9 @@ CON_COMMAND_F(sar_expand, "sar_expand [cmd]... - run a command after expanding s
 	expand(noArgs, std::string(cmd));
 }
 
-CON_COMMAND_F(sar_function_run, "sar_function_run <name> [args]... - run a function with the given arguments\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_function_run, "p2sm_function_run <name> [args]... - run a function with the given arguments\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() < 2) {
-		return console->Print(sar_function_run.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_function_run.ThisPtr()->m_pszHelpString);
 	}
 
 	auto it = g_functions.find({args[1]});

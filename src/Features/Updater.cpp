@@ -19,11 +19,11 @@ extern "C" {
 #include <utility>
 
 #ifdef _WIN32
-#	define ASSET_NAME "sar.dll"
-#	define PDB_ASSET_NAME "sar.pdb"
-#	define PDB_PATH "sar.pdb"
+#	define ASSET_NAME "p2sm.dll"
+#	define PDB_ASSET_NAME "p2sm.pdb"
+#	define PDB_PATH "p2sm.pdb"
 #else
-#	define ASSET_NAME "sar.so"
+#	define ASSET_NAME "p2sm.so"
 #endif
 
 static CURL *g_curl;
@@ -38,7 +38,7 @@ struct SarVersion {
 	bool canary;
 };
 
-#define DL_SAR_HOST "https://dl.sar.portal2.sr"
+#define DL_P2SM_HOST "https://dl.p2sm.portal2.sr"
 
 static std::optional<SarVersion> getVersionComponents(const char *str) {
 	SarVersion v = {0, 0, false};
@@ -80,11 +80,11 @@ static std::optional<SarVersion> getVersionComponents(const char *str) {
 
 static bool isNewerVersion(std::string& verStr, bool print) {
 	auto version = getVersionComponents(verStr.c_str());
-	auto current = getVersionComponents(SAR_VERSION);
+	auto current = getVersionComponents(P2SM_VERSION);
 
 	if ((version && version->canary) && (current && current->canary)) {
 		// For update from canary to canary, we just check if it's a different version
-		return strcmp(SAR_VERSION, verStr.c_str()) != 0;
+		return strcmp(P2SM_VERSION, verStr.c_str()) != 0;
 	}
 
 	if (!current || current->canary) {
@@ -192,14 +192,14 @@ static bool getLatestVersion(CURL *curl, std::string *name, std::string *dlUrl, 
 		}
 	} else if (channel == Channel::Canary) {
 		std::string err;
-		res = json11::Json::parse(request(curl, DL_SAR_HOST "/api/v1/latest/canary"), err);
+		res = json11::Json::parse(request(curl, DL_P2SM_HOST "/api/v1/latest/canary"), err);
 		if (err != "") {
 			return false;
 		}
 		try {
-			*name = res["sar_version"].string_value();
+			*name = res["p2sm_version"].string_value();
 
-			auto url = std::string(DL_SAR_HOST "/") + res["version"].string_value();
+			auto url = std::string(DL_P2SM_HOST "/") + res["version"].string_value();
 #if _WIN32
 			auto systemPath = "/windows/";
 			*pdbUrl = url + systemPath + PDB_ASSET_NAME;
@@ -286,7 +286,7 @@ void checkUpdate(CURL *curl, Channel channel, bool print, std::function<void(int
 	if (!isNewer) {
 		if (print) THREAD_PRINT("You're all up-to-date!\n");
 	} else {
-		if (print) THREAD_PRINT("Update with sar_update, or at %s\n", dlUrl.c_str());
+		if (print) THREAD_PRINT("Update with p2sm_update, or at %s\n", dlUrl.c_str());
 	}
 
 	callback(isNewer ? 0 : 2); // RC=0 indicates update available, RC=2 otherwise
@@ -307,7 +307,7 @@ void doUpdate(Channel channel, int successAction, bool force) {
 		return;
 	}
 
-	std::string sar = Utils::GetSARPath();
+	std::string p2sm = Utils::GetSARPath();
 	std::string tmp = createTempPath(ASSET_NAME);
 #ifdef _WIN32
 	std::string tmpPdb = createTempPath(PDB_ASSET_NAME);
@@ -333,16 +333,16 @@ void doUpdate(Channel channel, int successAction, bool force) {
 	THREAD_PRINT("Deleting old version...\n");
 #ifdef _WIN32
 	try {
-		std::filesystem::rename(sar, "sar.dll.old-auto");
+		std::filesystem::rename(p2sm, "p2sm.dll.old-auto");
 		if (std::filesystem::exists(PDB_PATH)) {
-			std::filesystem::rename(PDB_PATH, "sar.pdb.old-auto");
+			std::filesystem::rename(PDB_PATH, "p2sm.pdb.old-auto");
 		}
 	} catch (std::filesystem::filesystem_error &e) {
 		THREAD_PRINT("Failed to move old version: %s\n", e.what());
 		return;
 	}
 #else
-	std::filesystem::remove(sar);
+	std::filesystem::remove(p2sm);
 #endif
 
 	// Step 3: copy the new SAR image to the location of the old one,
@@ -350,7 +350,7 @@ void doUpdate(Channel channel, int successAction, bool force) {
 	// for........reasons
 	THREAD_PRINT("Installing...\n", name.c_str());
 	try {
-		std::filesystem::copy(tmp, sar);
+		std::filesystem::copy(tmp, p2sm);
 		std::filesystem::remove(tmp);
 #ifdef _WIN32
 		std::filesystem::copy(tmpPdb, PDB_PATH);
@@ -380,9 +380,9 @@ void doUpdate(Channel channel, int successAction, bool force) {
 	}
 }
 
-CON_COMMAND(sar_check_update, "sar_check_update [release|pre|canary] - check whether the latest version of SAR is being used\n") {
+CON_COMMAND(p2sm_check_update, "p2sm_check_update [release|pre|canary] - check whether the latest version of SAR is being used\n") {
 	if (args.ArgC() > 2) {
-		return THREAD_PRINT(sar_check_update.ThisPtr()->m_pszHelpString);
+		return THREAD_PRINT(p2sm_check_update.ThisPtr()->m_pszHelpString);
 	}
 
 	auto channel = Channel::Release;
@@ -397,7 +397,7 @@ CON_COMMAND(sar_check_update, "sar_check_update [release|pre|canary] - check whe
 	g_worker = std::thread(checkUpdate, g_curl, channel, true, [](int) {});
 }
 
-CON_COMMAND(sar_update, "sar_update [release|pre|canary] [exit|restart] [force] - update SAR to the latest version. If exit is given, exit the game upon successful update; if force is given, always re-install, even if it may be a downgrade\n") {
+CON_COMMAND(p2sm_update, "p2sm_update [release|pre|canary] [exit|restart] [force] - update SAR to the latest version. If exit is given, exit the game upon successful update; if force is given, always re-install, even if it may be a downgrade\n") {
 	auto channel = Channel::Release;
 	auto successAction = 0;
 	auto force = false;
@@ -417,7 +417,7 @@ CON_COMMAND(sar_update, "sar_update [release|pre|canary] [exit|restart] [force] 
 			force = true;
 		} else {
 			console->Print("Invalid argument '%s'\n", args[i]);
-			console->Print(sar_update.ThisPtr()->m_pszHelpString);
+			console->Print(p2sm_update.ThisPtr()->m_pszHelpString);
 			return;
 		}
 	}
@@ -426,6 +426,6 @@ CON_COMMAND(sar_update, "sar_update [release|pre|canary] [exit|restart] [force] 
 	g_worker = std::thread(doUpdate, channel, successAction, force);
 }
 
-ON_EVENT(SAR_UNLOAD) {
+ON_EVENT(P2SM_UNLOAD) {
 	if (g_worker.joinable()) g_worker.join();
 }

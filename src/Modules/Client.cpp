@@ -67,30 +67,30 @@ Variable ss_pipsplit;
 Variable ss_pipscale;
 Variable ss_verticalsplit;
 
-Variable sar_disable_coop_score_hud("sar_disable_coop_score_hud", "0", "Disables the coop score HUD which appears in demo playback.\n");
-Variable sar_disable_save_status_hud("sar_disable_save_status_hud", "0", "Disables the saving/saved HUD which appears when you make a save.\n");
+Variable p2sm_disable_coop_score_hud("p2sm_disable_coop_score_hud", "0", "Disables the coop score HUD which appears in demo playback.\n");
+Variable p2sm_disable_save_status_hud("p2sm_disable_save_status_hud", "0", "Disables the saving/saved HUD which appears when you make a save.\n");
 
-Variable sar_patch_small_angle_decay("sar_patch_small_angle_decay", "0", "Patches small angle decay (not minor decay).\n");
-Variable sar_patch_major_angle_decay("sar_patch_major_angle_decay", "0", "Patches major pitch angle decay. Requires cheats.\n");
+Variable p2sm_patch_small_angle_decay("p2sm_patch_small_angle_decay", "0", "Patches small angle decay (not minor decay).\n");
+Variable p2sm_patch_major_angle_decay("p2sm_patch_major_angle_decay", "0", "Patches major pitch angle decay. Requires cheats.\n");
 
 // need to do this to include in docs lol
-Variable sar_patch_minor_angle_decay("sar_patch_minor_angle_decay", "0", "Patches minor pitch angle decay present on Windows version of the game.\n"
+Variable p2sm_patch_minor_angle_decay("p2sm_patch_minor_angle_decay", "0", "Patches minor pitch angle decay present on Windows version of the game.\n"
 #ifndef _WIN32
                                      ,
                                      FCVAR_HIDDEN | FCVAR_DEVELOPMENTONLY
 #endif
 );
 
-Variable sar_unlocked_chapters("sar_unlocked_chapters", "-1", "Max unlocked chapter.\n");
+Variable p2sm_unlocked_chapters("p2sm_unlocked_chapters", "-1", "Max unlocked chapter.\n");
 
-Variable sar_portalcolor_enable("sar_portalcolor_enable", "0", "Enable custom portal colors.\n");
-Variable sar_portalcolor_sp_1("sar_portalcolor_sp_1", "64 160 255", "Portal color for Chell's left portal. r_portal_fastpath 0 required.\n");
-Variable sar_portalcolor_sp_2("sar_portalcolor_sp_2", "255 160 32", "Portal color for Chell's right portal. r_portal_fastpath 0 required.\n");
-Variable sar_portalcolor_mp1_1("sar_portalcolor_mp1_1", "31 127 210", "Portal color for Atlas (blue)'s left portal.\n");
-Variable sar_portalcolor_mp1_2("sar_portalcolor_mp1_2", "19 0 210",   "Portal color for Atlas (blue)'s right portal.\n");
-Variable sar_portalcolor_mp2_1("sar_portalcolor_mp2_1", "255 179 31", "Portal color for P-Body (orange)'s left portal.\n");
-Variable sar_portalcolor_mp2_2("sar_portalcolor_mp2_2", "57 2 2",     "Portal color for P-Body (orange)'s right portal.\n");
-Variable sar_portalcolor_rainbow("sar_portalcolor_rainbow", "0", "Rainbow portals!\n");
+Variable p2sm_portalcolor_enable("p2sm_portalcolor_enable", "0", "Enable custom portal colors.\n");
+Variable p2sm_portalcolor_sp_1("p2sm_portalcolor_sp_1", "64 160 255", "Portal color for Chell's left portal. r_portal_fastpath 0 required.\n");
+Variable p2sm_portalcolor_sp_2("p2sm_portalcolor_sp_2", "255 160 32", "Portal color for Chell's right portal. r_portal_fastpath 0 required.\n");
+Variable p2sm_portalcolor_mp1_1("p2sm_portalcolor_mp1_1", "31 127 210", "Portal color for Atlas (blue)'s left portal.\n");
+Variable p2sm_portalcolor_mp1_2("p2sm_portalcolor_mp1_2", "19 0 210",   "Portal color for Atlas (blue)'s right portal.\n");
+Variable p2sm_portalcolor_mp2_1("p2sm_portalcolor_mp2_1", "255 179 31", "Portal color for P-Body (orange)'s left portal.\n");
+Variable p2sm_portalcolor_mp2_2("p2sm_portalcolor_mp2_2", "57 2 2",     "Portal color for P-Body (orange)'s right portal.\n");
+Variable p2sm_portalcolor_rainbow("p2sm_portalcolor_rainbow", "0", "Rainbow portals!\n");
 
 REDECL(Client::LevelInitPreEntity);
 REDECL(Client::CreateMove);
@@ -274,7 +274,7 @@ DETOUR(Client::CreateMove, float flInputSampleTime, CUserCmd *cmd) {
 		cmd->upmove = 0;
 	}
 
-	if (sar_strafesync.GetBool()) {
+	if (p2sm_strafesync.GetBool()) {
 		synchro->UpdateSync(slot, cmd);
 	}
 
@@ -295,7 +295,7 @@ DETOUR(Client::CreateMove2, float flInputSampleTime, CUserCmd *cmd) {
 		inputHud.SetInputInfo(1, cmd->buttons, {cmd->sidemove, cmd->forwardmove, cmd->upmove});
 	}
 
-	if (sar_strafesync.GetBool()) {
+	if (p2sm_strafesync.GetBool()) {
 		synchro->UpdateSync(1, cmd);
 	}
 
@@ -314,7 +314,7 @@ DETOUR(Client::CreateMove2, float flInputSampleTime, CUserCmd *cmd) {
 
 // CHud::GetName
 DETOUR_T(const char *, Client::GetName) {
-	if (sar_disable_challenge_stats_hud.GetInt() == -1) return "";
+	if (p2sm_disable_challenge_stats_hud.GetInt() == -1) return "";
 	return Client::GetName(thisptr);
 }
 
@@ -326,9 +326,9 @@ DETOUR_COMMAND(Client::openleaderboard) {
 	if (args.ArgC() == 2 && !strcmp(args[1], "4") && client->GetChallengeStatus() == CMStatus::CHALLENGE) {
 		g_leaderboardOpen = true;
 		auto ticks = 6;
-		if (sar_disable_challenge_stats_hud.GetInt() > 1) ticks = sar_disable_challenge_stats_hud.GetInt();
+		if (p2sm_disable_challenge_stats_hud.GetInt() > 1) ticks = p2sm_disable_challenge_stats_hud.GetInt();
 		Scheduler::InHostTicks(ticks, []() {
-			if (sar.game->Is(SourceGame_Portal2) && sar_disable_challenge_stats_hud.GetInt() > 0 && (!engine->IsCoop() || engine->IsOrange() || g_leaderboardWillClose)) {
+			if (p2sm.game->Is(SourceGame_Portal2) && p2sm_disable_challenge_stats_hud.GetInt() > 0 && (!engine->IsCoop() || engine->IsOrange() || g_leaderboardWillClose)) {
 				g_leaderboardWillClose = false;
 				engine->ExecuteCommand("-leaderboard");
 			}
@@ -341,9 +341,9 @@ Memory::Patch *g_drawPortalGhostPatch;
 // C_Prop_Portal::DrawPortal
 extern Hook g_DrawPortalHook;
 DETOUR(Client::DrawPortal, void *pRenderContext) {
-	if (sar_portalcolor_enable.GetBool() &&
-		!(!strcmp(sar_portalcolor_sp_1.GetString(), sar_portalcolor_sp_1.ThisPtr()->m_pszDefaultValue) &&
-		  !strcmp(sar_portalcolor_sp_2.GetString(), sar_portalcolor_sp_2.ThisPtr()->m_pszDefaultValue))) {
+	if (p2sm_portalcolor_enable.GetBool() &&
+		!(!strcmp(p2sm_portalcolor_sp_1.GetString(), p2sm_portalcolor_sp_1.ThisPtr()->m_pszDefaultValue) &&
+		  !strcmp(p2sm_portalcolor_sp_2.GetString(), p2sm_portalcolor_sp_2.ThisPtr()->m_pszDefaultValue))) {
 		g_drawPortalPatch->Execute();
 	} else {
 		g_drawPortalPatch->Restore();
@@ -360,9 +360,9 @@ static void (*g_DrawPortalGhost)(void *pRenderContext);
 // C_Prop_Portal::DrawPortalGhostLocations
 extern Hook g_DrawPortalGhostHook;
 static void DrawPortalGhost_Hook(void *pRenderContext) {
-	if (sar_portalcolor_enable.GetBool() &&
-		!(!strcmp(sar_portalcolor_sp_1.GetString(), sar_portalcolor_sp_1.ThisPtr()->m_pszDefaultValue) &&
-		  !strcmp(sar_portalcolor_sp_2.GetString(), sar_portalcolor_sp_2.ThisPtr()->m_pszDefaultValue))) {
+	if (p2sm_portalcolor_enable.GetBool() &&
+		!(!strcmp(p2sm_portalcolor_sp_1.GetString(), p2sm_portalcolor_sp_1.ThisPtr()->m_pszDefaultValue) &&
+		  !strcmp(p2sm_portalcolor_sp_2.GetString(), p2sm_portalcolor_sp_2.ThisPtr()->m_pszDefaultValue))) {
 		g_drawPortalGhostPatch->Execute();
 	} else {
 		g_drawPortalGhostPatch->Restore();
@@ -382,20 +382,20 @@ static SourceColor UTIL_Portal_Color_Detour(int iPortal, int iTeamNumber) {
 	SourceColor ret = UTIL_Portal_Color(iPortal, iTeamNumber);
 	UTIL_Portal_Color_Hook.Enable();
 
-	if (sar_portalcolor_enable.GetBool()) {
+	if (p2sm_portalcolor_enable.GetBool()) {
 		std::optional<Color> modify;
 		// Yes, blue and orange are swapped. Mhm.
 		// Also 1 is unused.
-		if (sar_portalcolor_rainbow.GetBool()) {
+		if (p2sm_portalcolor_rainbow.GetBool()) {
 			int host, server, client;
 			engine->GetTicks(host, server, client);
 			modify = {Utils::HSVToRGB((host + (iTeamNumber == 2 ? 180 : 0) + (iPortal == 1 ? 0 : 30)) % 360, 100, iPortal == 1 ? 100 : 50)};
 		} else if (iTeamNumber == 0) {
-			modify = Utils::GetColor(iPortal == 1 ? sar_portalcolor_sp_1.GetString() : sar_portalcolor_sp_2.GetString());
+			modify = Utils::GetColor(iPortal == 1 ? p2sm_portalcolor_sp_1.GetString() : p2sm_portalcolor_sp_2.GetString());
 		} else if (iTeamNumber == 2) {
-			modify = Utils::GetColor(iPortal == 1 ? sar_portalcolor_mp2_1.GetString() : sar_portalcolor_mp2_2.GetString());
+			modify = Utils::GetColor(iPortal == 1 ? p2sm_portalcolor_mp2_1.GetString() : p2sm_portalcolor_mp2_2.GetString());
 		} else if (iTeamNumber == 3) {
-			modify = Utils::GetColor(iPortal == 1 ? sar_portalcolor_mp1_1.GetString() : sar_portalcolor_mp1_2.GetString());
+			modify = Utils::GetColor(iPortal == 1 ? p2sm_portalcolor_mp1_1.GetString() : p2sm_portalcolor_mp1_2.GetString());
 		}
 		if (modify.has_value()) ret = SourceColor(modify.value().r, modify.value().g, modify.value().b);
 	}
@@ -416,12 +416,12 @@ static SourceColor UTIL_Portal_Color_Particles_Detour(int iPortal, int iTeamNumb
 	SourceColor ret = UTIL_Portal_Color_Particles(iPortal, iTeamNumber);
 	UTIL_Portal_Color_Particles_Hook.Enable();
 
-	if (sar_portalcolor_enable.GetBool()) {
+	if (p2sm_portalcolor_enable.GetBool()) {
 		if (iTeamNumber == 0) {
 			// HACK: If we're at the default SP color, just let the function use its hardcoded return path.
 			// Otherwise, draw the particles according to portal colors
-			if (iPortal == 1 && !strcmp(sar_portalcolor_sp_1.GetString(), sar_portalcolor_sp_1.ThisPtr()->m_pszDefaultValue)) return ret;
-			if (iPortal == 2 && !strcmp(sar_portalcolor_sp_2.GetString(), sar_portalcolor_sp_2.ThisPtr()->m_pszDefaultValue)) return ret;
+			if (iPortal == 1 && !strcmp(p2sm_portalcolor_sp_1.GetString(), p2sm_portalcolor_sp_1.ThisPtr()->m_pszDefaultValue)) return ret;
+			if (iPortal == 2 && !strcmp(p2sm_portalcolor_sp_2.GetString(), p2sm_portalcolor_sp_2.ThisPtr()->m_pszDefaultValue)) return ret;
 		}
 		return UTIL_Portal_Color(iPortal, iTeamNumber);
 	}
@@ -433,7 +433,7 @@ Hook UTIL_Portal_Color_Particles_Hook(&UTIL_Portal_Color_Particles_Detour);
 ON_INIT {
 	NetMessage::RegisterHandler(LEADERBOARD_MESSAGE_TYPE, +[](const void *data, size_t size) {
 		// TODO: Investigate why this sometimes doesn't work - AMJ 2024-04-25
-		if (sar_disable_challenge_stats_hud_partner.GetBool()) {
+		if (p2sm_disable_challenge_stats_hud_partner.GetBool()) {
 			g_leaderboardWillClose = true;
 			engine->ExecuteCommand("-leaderboard");
 		} });
@@ -456,7 +456,7 @@ DETOUR_COMMAND(Client::closeleaderboard) {
 
 // CHudMultiplayerBasicInfo::ShouldDraw
 DETOUR_T(bool, Client::ShouldDraw_BasicInfo) {
-	if (sar_disable_coop_score_hud.GetBool()) {
+	if (p2sm_disable_coop_score_hud.GetBool()) {
 		return false;
 	}
 
@@ -465,7 +465,7 @@ DETOUR_T(bool, Client::ShouldDraw_BasicInfo) {
 
 // CHudSaveStatus::ShouldDraw
 DETOUR_T(bool, Client::ShouldDraw_SaveStatus) {
-	if (sar_disable_save_status_hud.GetBool()) {
+	if (p2sm_disable_save_status_hud.GetBool()) {
 		return false;
 	}
 
@@ -481,7 +481,7 @@ DETOUR(Client::MsgFunc_SayText2, bf_read &msg) {
 	msg.ReadUnsigned(8);
 
 	std::string str = "";
-	if (sar.game->Is(SourceGame_Portal2)) {
+	if (p2sm.game->Is(SourceGame_Portal2)) {
 		while (true) {
 			char c = (char)(uint8_t)msg.ReadUnsigned(8);
 			if (!c) break;
@@ -499,7 +499,7 @@ DETOUR(Client::MsgFunc_SayText2, bf_read &msg) {
 			char c = (char)(uint8_t)msg.ReadUnsigned(8);
 			if (!c) break;
 		}
-	} else if (sar.game->Is(SourceGame_PortalReloaded | SourceGame_Portal2_2011)) {
+	} else if (p2sm.game->Is(SourceGame_PortalReloaded | SourceGame_Portal2_2011)) {
 		// Reloaded and 2011 Portal 2 use the legacy format where it's just one string
 		while (true) {
 			char c = (char)(uint8_t)msg.ReadUnsigned(8);
@@ -524,7 +524,7 @@ DETOUR(Client::MsgFunc_SayText2, bf_read &msg) {
 	if (NetMessage::ChatData(str)) {
 		// skip the other crap, just in case it matters
 		msg.ReadUnsigned(8);
-		if (!sar_netmessage_debug.GetBool()) return 0;
+		if (!p2sm_netmessage_debug.GetBool()) return 0;
 	}
 
 	msg = pre;
@@ -575,13 +575,13 @@ DETOUR(Client::DecodeUserCmdFromBuffer, int nSlot, int buf, signed int sequence_
 		inputHud.SetInputInfo(1, cmd->buttons, cmdMove);
 	}
 
-	if (sar_strafesync.GetBool()) {
+	if (p2sm_strafesync.GetBool()) {
 		synchro->UpdateSync(nSlot, cmd);
 	}
 
 	strafeQualityHud->OnUserCmd(nSlot, *cmd);
 	void *player = client->GetPlayer(nSlot + 1);
-	if (player && !sar.game->Is(SourceGame_INFRA)) {
+	if (player && !p2sm.game->Is(SourceGame_INFRA)) {
 		bool grounded = CE(player)->ground_entity();
 		strafeHud.SetData(nSlot, player, cmd, false);
 		Event::Trigger<Event::PROCESS_MOVEMENT>({nSlot, false, player, nullptr, cmd, grounded});  // There isn't really one, just pretend it's here lol
@@ -683,13 +683,13 @@ DETOUR(Client::ApplyMouse, int nSlot, QAngle &viewangles, CUserCmd *cmd, float m
 	auto lastViewAngles = viewangles;
 
 #ifdef _WIN32
-	if (sar_patch_minor_angle_decay.GetBool()) g_ApplyMouseMidHook.Enable();
+	if (p2sm_patch_minor_angle_decay.GetBool()) g_ApplyMouseMidHook.Enable();
 #endif
-	if (sar_patch_major_angle_decay.GetBool() && sv_cheats.GetBool()) MatrixBuildRotationAboutAxisHook.Enable();
+	if (p2sm_patch_major_angle_decay.GetBool() && sv_cheats.GetBool()) MatrixBuildRotationAboutAxisHook.Enable();
 	auto result = Client::ApplyMouse(thisptr, nSlot, viewangles, cmd, mouse_x, mouse_y);
-	if (sar_patch_major_angle_decay.GetBool() && sv_cheats.GetBool()) MatrixBuildRotationAboutAxisHook.Disable();
+	if (p2sm_patch_major_angle_decay.GetBool() && sv_cheats.GetBool()) MatrixBuildRotationAboutAxisHook.Disable();
 #ifdef _WIN32
-	if (sar_patch_minor_angle_decay.GetBool()) g_ApplyMouseMidHook.Disable();
+	if (p2sm_patch_minor_angle_decay.GetBool()) g_ApplyMouseMidHook.Disable();
 #endif
 
 	Vector delta = {
@@ -704,7 +704,7 @@ DETOUR(Client::ApplyMouse, int nSlot, QAngle &viewangles, CUserCmd *cmd, float m
 		upDelta = fabsf(client->GetPortalLocal(player).m_up.z - 1);
 	}
 
-	if (sar_patch_small_angle_decay.GetBool()) {
+	if (p2sm_patch_small_angle_decay.GetBool()) {
 		// yaw decay
 		if (mouse_x == 0.0f && delta.y != 0.0f) viewangles.y = lastViewAngles.y;
 		if ((upDelta == 0.0f || (fabsf(viewangles.x) < 45.0f))
@@ -777,7 +777,7 @@ DETOUR(Client::ProcessMovement, void *player, CMoveData *move) {
 	return result;
 }
 
-CON_COMMAND(sar_chat, "sar_chat - open the chat HUD\n") {
+CON_COMMAND(p2sm_chat, "p2sm_chat - open the chat HUD\n") {
 	if (g_chatType == 0) {
 		g_wasChatType = 0;
 		g_chatType = 1;
@@ -807,7 +807,7 @@ Hook g_DrawOpaqueRenderablesHook(&Client::DrawOpaqueRenderables_Hook);
 
 extern Hook g_CalcViewModelLagHook;
 DETOUR_T(void, Client::CalcViewModelLag, Vector &origin, QAngle &angles, QAngle &original_angles) {
-	if (sar_disable_weapon_sway.GetBool()) {
+	if (p2sm_disable_weapon_sway.GetBool()) {
 		return;
 	}
 
@@ -819,7 +819,7 @@ Hook g_CalcViewModelLagHook(&Client::CalcViewModelLag_Hook);
 
 extern Hook g_AddShadowToReceiverHook;
 DETOUR_T(void, Client::AddShadowToReceiver, unsigned short handle, void *pRenderable, int type) {
-	if (sar_disable_viewmodel_shadows.GetBool()) {
+	if (p2sm_disable_viewmodel_shadows.GetBool()) {
 		// IClientRenderable::GetModel()
 		using _GetModel = model_t *(__rescall *)(void *);
 		model_t *model = Memory::VMT<_GetModel>(pRenderable, Offsets::GetModel)(pRenderable);
@@ -836,7 +836,7 @@ Hook g_AddShadowToReceiverHook(&Client::AddShadowToReceiver_Hook);
 
 static void (*MsgPreSkipToNextLevel)();
 
-CON_COMMAND(sar_workshop_skip, "sar_workshop_skip - Skips to the next level in workshop\n") {
+CON_COMMAND(p2sm_workshop_skip, "p2sm_workshop_skip - Skips to the next level in workshop\n") {
 	if (!sv_cheats.GetBool()) {
 		return console->Print("This command requires sv_cheats\n");
 	}
@@ -935,8 +935,8 @@ Hook g_OnCommandHook(&Client::OnCommand_Hook);
 
 extern Hook g_GetChapterProgressHook;
 DETOUR(Client::GetChapterProgress) {
-	if (sar_unlocked_chapters.GetInt() > -1)
-		return sar_unlocked_chapters.GetInt() + 1;
+	if (p2sm_unlocked_chapters.GetInt() > -1)
+		return p2sm_unlocked_chapters.GetInt() + 1;
 
 	g_GetChapterProgressHook.Disable();
 	auto ret = Client::GetChapterProgress(thisptr);
@@ -948,7 +948,7 @@ Hook g_GetChapterProgressHook(&Client::GetChapterProgress_Hook);
 bool Client::Init() {
 	bool readJmp = false;
 #ifdef _WIN32
-	if (sar.game->Is(SourceGame_BeginnersGuide | SourceGame_StanleyParable)) {
+	if (p2sm.game->Is(SourceGame_BeginnersGuide | SourceGame_StanleyParable)) {
 		readJmp = true;
 	}
 #endif
@@ -1005,10 +1005,10 @@ bool Client::Init() {
 			if (this->g_HudChat = Interface::Create(CHudChat)) {
 				this->ChatPrintf = g_HudChat->Original<_ChatPrintf>(Offsets::ChatPrintf);
 				this->StartMessageMode = g_HudChat->Original<_StartMessageMode>(Offsets::ChatPrintf + 1);
-				if (sar.game->Is(SourceGame_Portal2)) {
+				if (p2sm.game->Is(SourceGame_Portal2)) {
 					this->g_HudChat->Hook(Client::MsgFunc_SayText2_Hook, Client::MsgFunc_SayText2, Offsets::MsgFunc_SayText2);
 					this->g_HudChat->Hook(Client::GetTextColorForClient_Hook, Client::GetTextColorForClient, Offsets::GetTextColorForClient);
-				} else if (sar.game->Is(SourceGame_PortalReloaded | SourceGame_Portal2_2011)) {
+				} else if (p2sm.game->Is(SourceGame_PortalReloaded | SourceGame_Portal2_2011)) {
 					// This hooks SayText, not SayText2, but the function signature is compatible
 					this->g_HudChat->Hook(Client::MsgFunc_SayText2_Hook, Client::MsgFunc_SayText2, Offsets::MsgFunc_SayText);
 				}
@@ -1136,17 +1136,17 @@ bool Client::Init() {
 	g_DrawTranslucentRenderablesHook.SetFunc(Client::DrawTranslucentRenderables);
 	g_DrawOpaqueRenderablesHook.SetFunc(Client::DrawOpaqueRenderables);
 
-	if (sar.game->Is(SourceGame_Portal2 | SourceGame_ApertureTag)) {
+	if (p2sm.game->Is(SourceGame_Portal2 | SourceGame_ApertureTag)) {
 		MsgPreSkipToNextLevel = (decltype(MsgPreSkipToNextLevel))Memory::Scan(client->Name(), Offsets::MsgPreSkipToNextLevel);
 	}
 
-	if (sar.game->Is(SourceGame_Portal2)) {
+	if (p2sm.game->Is(SourceGame_Portal2)) {
 		Client::CalcViewModelLag = (decltype(Client::CalcViewModelLag))Memory::Scan(client->Name(), Offsets::CalcViewModelLag);
 	}
 
 	g_CalcViewModelLagHook.SetFunc(Client::CalcViewModelLag);
 
-	if (sar.game->Is(SourceGame_Portal2 | SourceGame_PortalStoriesMel | SourceGame_PortalReloaded)) {
+	if (p2sm.game->Is(SourceGame_Portal2 | SourceGame_PortalStoriesMel | SourceGame_PortalReloaded)) {
 		Client::AddShadowToReceiver = (decltype(Client::AddShadowToReceiver))Memory::Scan(client->Name(), Offsets::AddShadowToReceiver);
 	}
 
@@ -1164,7 +1164,7 @@ bool Client::Init() {
 		if (readJmp) {
 			cbk = Memory::Read<uintptr_t>(cbk + 1);
 		}
-		if (sar.game->Is(SourceGame_Portal2_2011)) {
+		if (p2sm.game->Is(SourceGame_Portal2_2011)) {
 			cbk = Memory::Read<uintptr_t>(cbk + 3);
 		}
 		// OpenRadialMenuCommand is inlined on Windows
@@ -1174,7 +1174,7 @@ bool Client::Init() {
 		this->gamerules = Memory::Deref<void **>(cbk + Offsets::gamerules);
 	}
 
-	if (sar.game->Is(SourceGame_PortalStoriesMel)) {
+	if (p2sm.game->Is(SourceGame_PortalStoriesMel)) {
 		auto GetNumChapters = Memory::Scan(this->Name(), Offsets::GetNumChapters);
 		if (GetNumChapters) {
 			this->nNumSPChapters = Memory::Deref<int *>(GetNumChapters + Offsets::nNumSPChapters);

@@ -13,13 +13,13 @@
 
 VphysHud vphysHud;
 
-Variable sar_vphys_hud("sar_vphys_hud", "0", 0, "Enables or disables the vphys HUD.\n");
-Variable sar_vphys_hud_font("sar_vphys_hud_font", "1", 0, "Sets font of the vphys HUD.\n");
-Variable sar_vphys_hud_precision("sar_vphys_hud_precision", "3", 1, 16, "Sets decimal precision of the vphys HUD.\n");
-Variable sar_vphys_hud_x("sar_vphys_hud_x", "0", 0, "The x position of the vphys HUD.\n");
-Variable sar_vphys_hud_y("sar_vphys_hud_y", "0", 0, "The y position of the vphys HUD.\n");
+Variable p2sm_vphys_hud("p2sm_vphys_hud", "0", 0, "Enables or disables the vphys HUD.\n");
+Variable p2sm_vphys_hud_font("p2sm_vphys_hud_font", "1", 0, "Sets font of the vphys HUD.\n");
+Variable p2sm_vphys_hud_precision("p2sm_vphys_hud_precision", "3", 1, 16, "Sets decimal precision of the vphys HUD.\n");
+Variable p2sm_vphys_hud_x("p2sm_vphys_hud_x", "0", 0, "The x position of the vphys HUD.\n");
+Variable p2sm_vphys_hud_y("p2sm_vphys_hud_y", "0", 0, "The y position of the vphys HUD.\n");
 
-Variable sar_vphys_hud_show_hitboxes("sar_vphys_hud_show_hitboxes", "2", 0, 3, 
+Variable p2sm_vphys_hud_show_hitboxes("p2sm_vphys_hud_show_hitboxes", "2", 0, 3, 
 	"Sets visibility of hitboxes when vphys hud is active.\n"
 	"0 = hitboxes are not drawn\n"
 	"1 = only active vphys hitbox is drawn\n"
@@ -31,13 +31,13 @@ VphysHud::VphysHud()
 	: Hud(HudType_InGame, true) {
 }
 bool VphysHud::ShouldDraw() {
-	return sar_vphys_hud.GetBool() && Hud::ShouldDraw() && sv_cheats.GetBool();
+	return p2sm_vphys_hud.GetBool() && Hud::ShouldDraw() && sv_cheats.GetBool();
 }
 void VphysHud::Paint(int slot) {
-	auto font = scheme->GetFontByID(sar_vphys_hud_font.GetInt());
+	auto font = scheme->GetFontByID(p2sm_vphys_hud_font.GetInt());
 
-	int cX = sar_vphys_hud_x.GetInt();
-	int cY = sar_vphys_hud_y.GetInt();
+	int cX = p2sm_vphys_hud_x.GetInt();
+	int cY = p2sm_vphys_hud_y.GetInt();
 	 
 	float fh = surface->GetFontHeight(font);
 
@@ -54,7 +54,7 @@ void VphysHud::Paint(int slot) {
 			disableColor.a = 100;
 		}
 
-		int p = sar_vphys_hud_precision.GetInt();
+		int p = p2sm_vphys_hud_precision.GetInt();
 
 		surface->DrawTxt(font, x, y, posColor, "%s: ", name);
 		surface->DrawTxt(font, x + 10, (y += fh), posColor, "pos: %.*f, %.*f, %.*f", 
@@ -116,13 +116,13 @@ VphysShadowInfo VphysHud::GetVphysInfo(int slot, bool crouched) {
 
 // drawing player's hitboxes
 ON_EVENT(RENDER) {
-	if (!sv_cheats.GetBool() || !sar_vphys_hud.GetBool() || !sar_vphys_hud_show_hitboxes.GetBool()) 
+	if (!sv_cheats.GetBool() || !p2sm_vphys_hud.GetBool() || !p2sm_vphys_hud_show_hitboxes.GetBool()) 
 		return;
 
 	void *player = server->GetPlayer(GET_SLOT() + 1);
 	if (!player) return;
 
-	int renderState = sar_vphys_hud_show_hitboxes.GetInt();
+	int renderState = p2sm_vphys_hud_show_hitboxes.GetInt();
 
 	const auto renderHitbox = [=](Color c, float solidScale, Vector pos, Vector size, QAngle rot) {
 		RenderCallback solid = RenderCallback::constant({c.r, c.g, c.b, (uint8_t)(c.a * solidScale)});
@@ -160,7 +160,7 @@ ON_EVENT(RENDER) {
 }
 
 
-CON_COMMAND(sar_vphys_setgravity, "sar_vphys_setgravity <hitbox> <enabled> - sets gravity flag state for specified havok collision shadow. Hitboxes:\n"
+CON_COMMAND(p2sm_vphys_setgravity, "p2sm_vphys_setgravity <hitbox> <enabled> - sets gravity flag state for specified havok collision shadow. Hitboxes:\n"
 	"0 - Standing Chell/Atlas\n"
 	"1 - Crouching Chell/Atlas\n"
 	"2 - Standing Pbody\n"
@@ -169,11 +169,11 @@ CON_COMMAND(sar_vphys_setgravity, "sar_vphys_setgravity <hitbox> <enabled> - set
 		return;
 	}
 	if (!sv_cheats.GetBool()) {
-		return console->Print("Cannot use sar_vphys_setgravity without sv_cheats set to 1.\n");
+		return console->Print("Cannot use p2sm_vphys_setgravity without sv_cheats set to 1.\n");
 	}
 
 	if (args.ArgC() != 3) {
-		return console->Print(sar_vphys_setgravity.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_vphys_setgravity.ThisPtr()->m_pszHelpString);
 	}
 
 	int hitbox = std::atoi(args[1]);
@@ -193,7 +193,7 @@ CON_COMMAND(sar_vphys_setgravity, "sar_vphys_setgravity <hitbox> <enabled> - set
 	EnableGravity((hitbox % 2) ? m_pShadowCrouch : m_pShadowStand, enabled);
 }
 
-CON_COMMAND(sar_vphys_setangle, "sar_vphys_setangle <hitbox> <angle> [component = z] - sets rotation angle for specified havok collision shadow. Hitboxes:\n"
+CON_COMMAND(p2sm_vphys_setangle, "p2sm_vphys_setangle <hitbox> <angle> [component = z] - sets rotation angle for specified havok collision shadow. Hitboxes:\n"
 	"0 - Standing Chell/Atlas\n"
 	"1 - Crouching Chell/Atlas\n"
 	"2 - Standing Pbody\n"
@@ -202,11 +202,11 @@ CON_COMMAND(sar_vphys_setangle, "sar_vphys_setangle <hitbox> <angle> [component 
 		return;
 	}
 	if (!sv_cheats.GetBool()) {
-		return console->Print("Cannot use sar_vphys_setangle without sv_cheats set to 1.\n");
+		return console->Print("Cannot use p2sm_vphys_setangle without sv_cheats set to 1.\n");
 	}
 
 	if (args.ArgC() < 3 || args.ArgC() > 4) {
-		return console->Print(sar_vphys_setangle.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_vphys_setangle.ThisPtr()->m_pszHelpString);
 	}
 
 	auto hitbox = std::atoi(args[1]);
@@ -243,7 +243,7 @@ CON_COMMAND(sar_vphys_setangle, "sar_vphys_setangle <hitbox> <angle> [component 
 	SetPosition(selected, v, q, false);
 }
 
-CON_COMMAND(sar_vphys_setspin, "sar_vphys_setspin <hitbox> <angvel> [component = x] - sets rotation speed for specified havok collision shadow. Hitboxes:\n"
+CON_COMMAND(p2sm_vphys_setspin, "p2sm_vphys_setspin <hitbox> <angvel> [component = x] - sets rotation speed for specified havok collision shadow. Hitboxes:\n"
 	"0 - Standing Chell/Atlas\n"
 	"1 - Crouching Chell/Atlas\n"
 	"2 - Standing Pbody\n"
@@ -252,11 +252,11 @@ CON_COMMAND(sar_vphys_setspin, "sar_vphys_setspin <hitbox> <angvel> [component =
 		return;
 	}
 	if (!sv_cheats.GetBool()) {
-		return console->Print("Cannot use sar_vphys_setspin without sv_cheats set to 1.\n");
+		return console->Print("Cannot use p2sm_vphys_setspin without sv_cheats set to 1.\n");
 	}
 
 	if (args.ArgC() < 3 || args.ArgC() > 4) {
-		return console->Print(sar_vphys_setspin.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_vphys_setspin.ThisPtr()->m_pszHelpString);
 	}
 
 	auto hitbox = std::atoi(args[1]);
@@ -292,7 +292,7 @@ CON_COMMAND(sar_vphys_setspin, "sar_vphys_setspin <hitbox> <angvel> [component =
 	SetVelocity(selected, NULL, &v);
 }
 
-CON_COMMAND(sar_vphys_setasleep, "sar_vphys_setasleep <hitbox> <asleep> - sets whether the specified havok collision shadow is asleep. Hitboxes:\n"
+CON_COMMAND(p2sm_vphys_setasleep, "p2sm_vphys_setasleep <hitbox> <asleep> - sets whether the specified havok collision shadow is asleep. Hitboxes:\n"
 	"0 - Standing Chell/Atlas\n"
 	"1 - Crouching Chell/Atlas\n"
 	"2 - Standing Pbody\n"
@@ -301,11 +301,11 @@ CON_COMMAND(sar_vphys_setasleep, "sar_vphys_setasleep <hitbox> <asleep> - sets w
 		return;
 	}
 	if (!sv_cheats.GetBool()) {
-		return console->Print("Cannot use sar_vphys_setasleep without sv_cheats set to 1.\n");
+		return console->Print("Cannot use p2sm_vphys_setasleep without sv_cheats set to 1.\n");
 	}
 
 	if (args.ArgC() != 3) {
-		return console->Print(sar_vphys_setasleep.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_vphys_setasleep.ThisPtr()->m_pszHelpString);
 	}
 
 	int hitbox = std::atoi(args[1]);

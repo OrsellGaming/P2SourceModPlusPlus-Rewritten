@@ -19,13 +19,13 @@
 
 PortalPlacementHud portalplacementHud;
 
-Variable sar_pp_hud("sar_pp_hud", "0", 0, "Enables or disables the portals placement HUD.\n");
-Variable sar_pp_hud_show_blue("sar_pp_hud_show_blue", "0", 0, "Enables or disables blue portal preview.\n");
-Variable sar_pp_hud_show_orange("sar_pp_hud_show_orange", "0", 0, "Enables or disables orange portal preview.\n");
-Variable sar_pp_hud_x("sar_pp_hud_x", "5", "x pos of portal placement hud.\n", 0);
-Variable sar_pp_hud_y("sar_pp_hud_y", "5", "y pos of portal placement hud.\n", 0);
-Variable sar_pp_hud_opacity("sar_pp_hud_opacity", "100", 0, 255, "Opacity of portal previews.\n", 0);
-Variable sar_pp_hud_font("sar_pp_hud_font", "0", 0, "Change font of portal placement hud.\n");
+Variable p2sm_pp_hud("p2sm_pp_hud", "0", 0, "Enables or disables the portals placement HUD.\n");
+Variable p2sm_pp_hud_show_blue("p2sm_pp_hud_show_blue", "0", 0, "Enables or disables blue portal preview.\n");
+Variable p2sm_pp_hud_show_orange("p2sm_pp_hud_show_orange", "0", 0, "Enables or disables orange portal preview.\n");
+Variable p2sm_pp_hud_x("p2sm_pp_hud_x", "5", "x pos of portal placement hud.\n", 0);
+Variable p2sm_pp_hud_y("p2sm_pp_hud_y", "5", "y pos of portal placement hud.\n", 0);
+Variable p2sm_pp_hud_opacity("p2sm_pp_hud_opacity", "100", 0, 255, "Opacity of portal previews.\n", 0);
+Variable p2sm_pp_hud_font("p2sm_pp_hud_font", "0", 0, "Change font of portal placement hud.\n");
 
 bool g_hasPortalGun;
 bool g_canPlaceBlue;
@@ -37,14 +37,14 @@ PortalPlacementHud::PortalPlacementHud()
 	: Hud(HudType_InGame, true) {
 }
 bool PortalPlacementHud::ShouldDraw() {
-	bool shouldDraw = sv_cheats.GetBool() && sar_pp_hud.GetBool() && Hud::ShouldDraw();
+	bool shouldDraw = sv_cheats.GetBool() && p2sm_pp_hud.GetBool() && Hud::ShouldDraw();
 	return shouldDraw;
 }
 void PortalPlacementHud::Paint(int slot) {
-	auto font = scheme->GetFontByID(sar_pp_hud_font.GetInt());
+	auto font = scheme->GetFontByID(p2sm_pp_hud_font.GetInt());
 
-	int cX = PositionFromString(sar_pp_hud_x.GetString(), true);
-	int cY = PositionFromString(sar_pp_hud_y.GetString(), false);
+	int cX = PositionFromString(p2sm_pp_hud_x.GetString(), true);
+	int cY = PositionFromString(p2sm_pp_hud_y.GetString(), false);
 	int charHeight = surface->GetFontHeight(font);
 	int padding = 5;
 
@@ -96,7 +96,7 @@ bool PortalPlacementHud::GetCurrentSize(int &xSize, int &ySize) {
 ON_EVENT(PRE_TICK) {
 	// update portal placement info
 	// Will fizzle partner portals in coop
-	if (sv_cheats.GetBool() && sar_pp_hud.GetBool() && event.simulating) {
+	if (sv_cheats.GetBool() && p2sm_pp_hud.GetBool() && event.simulating) {
 		void *player = server->GetPlayer(GET_SLOT() + 1);
 
 		if (player == nullptr || (int)player == -1)
@@ -144,7 +144,7 @@ ON_EVENT(PRE_TICK) {
 }
 
 ON_EVENT(RENDER) {
-	if (sv_cheats.GetBool() && sar_pp_hud.GetBool()) {
+	if (sv_cheats.GetBool() && p2sm_pp_hud.GetBool()) {
 		// Draw the shits in world
 
 		auto blue =   SARUTIL_Portal_Color(1, 0);
@@ -163,7 +163,7 @@ ON_EVENT(RENDER) {
 			auto rot = Math::AngleMatrix({angles.x, angles.y, 0});
 
 			if (!(info.ePlacementResult<=2)) portalColor = red;
-			portalColor.a = (uint8_t)sar_pp_hud_opacity.GetInt();
+			portalColor.a = (uint8_t)p2sm_pp_hud_opacity.GetInt();
 
 			MeshId mesh = OverlayRender::createMesh(RenderCallback::constant(portalColor), RenderCallback::none);
 
@@ -182,7 +182,7 @@ ON_EVENT(RENDER) {
 			}
 		};
 
-		if (sar_pp_hud_show_blue.GetBool()) drawPortal(blue, g_bluePlacementInfo);
-		if (sar_pp_hud_show_orange.GetBool()) drawPortal(orange, g_orangePlacementInfo);
+		if (p2sm_pp_hud_show_blue.GetBool()) drawPortal(blue, g_bluePlacementInfo);
+		if (p2sm_pp_hud_show_orange.GetBool()) drawPortal(orange, g_orangePlacementInfo);
 	}
 }

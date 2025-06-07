@@ -41,9 +41,9 @@ void FovChanger::Force() {
 
 // Commands
 
-CON_COMMAND_COMPLETION(sar_force_fov, "sar_force_fov <fov> - forces player FOV\n", ({"0", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140"})) {
+CON_COMMAND_COMPLETION(p2sm_force_fov, "p2sm_force_fov <fov> - forces player FOV\n", ({"0", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140"})) {
 	if (args.ArgC() != 2) {
-		return console->Print(sar_force_fov.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_force_fov.ThisPtr()->m_pszHelpString);
 	}
 
 	auto fov = std::atoi(args[1]);
@@ -60,9 +60,9 @@ CON_COMMAND_COMPLETION(sar_force_fov, "sar_force_fov <fov> - forces player FOV\n
 	console->Print("Enabled forcing FOV: %i\n", fov);
 }
 
-CON_COMMAND(sar_force_viewmodel_fov, "sar_force_viewmodel_fov <fov> - forces viewmodel FOV\n") {
+CON_COMMAND(p2sm_force_viewmodel_fov, "p2sm_force_viewmodel_fov <fov> - forces viewmodel FOV\n") {
 	if (args.ArgC() != 2) {
-		return console->Print(sar_force_viewmodel_fov.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_force_viewmodel_fov.ThisPtr()->m_pszHelpString);
 	}
 
 	auto fov = (float)std::atof(args[1]);

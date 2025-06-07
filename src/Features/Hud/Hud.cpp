@@ -21,17 +21,17 @@
 #include <map>
 #include <optional>
 
-Variable sar_hud_spacing("sar_hud_spacing", "1", 0, "Spacing between elements of HUD.\n", FCVAR_DONTRECORD);
-Variable sar_hud_x("sar_hud_x", "2", 0, "X padding of HUD.\n", FCVAR_DONTRECORD);
-Variable sar_hud_y("sar_hud_y", "2", 0, "Y padding of HUD.\n", FCVAR_DONTRECORD);
-Variable sar_hud_font_index("sar_hud_font_index", "0", 0, "Font index of HUD.\n", FCVAR_DONTRECORD);
-Variable sar_hud_font_color("sar_hud_font_color", "255 255 255 255", "RGBA font color of HUD.\n", FCVAR_DONTRECORD);
+Variable p2sm_hud_spacing("p2sm_hud_spacing", "1", 0, "Spacing between elements of HUD.\n", FCVAR_DONTRECORD);
+Variable p2sm_hud_x("p2sm_hud_x", "2", 0, "X padding of HUD.\n", FCVAR_DONTRECORD);
+Variable p2sm_hud_y("p2sm_hud_y", "2", 0, "Y padding of HUD.\n", FCVAR_DONTRECORD);
+Variable p2sm_hud_font_index("p2sm_hud_font_index", "0", 0, "Font index of HUD.\n", FCVAR_DONTRECORD);
+Variable p2sm_hud_font_color("p2sm_hud_font_color", "255 255 255 255", "RGBA font color of HUD.\n", FCVAR_DONTRECORD);
 
-Variable sar_hud_precision("sar_hud_precision", "2", 0, "Precision of HUD numbers.\n");
-Variable sar_hud_velocity_precision("sar_hud_velocity_precision", "2", 0, "Precision of velocity HUD numbers.\n");
-Variable sar_hud_shorthand("sar_hud_shorthand", "0", "Whether to hide the text part of HUD elements.\n", FCVAR_DONTRECORD);
+Variable p2sm_hud_precision("p2sm_hud_precision", "2", 0, "Precision of HUD numbers.\n");
+Variable p2sm_hud_velocity_precision("p2sm_hud_velocity_precision", "2", 0, "Precision of velocity HUD numbers.\n");
+Variable p2sm_hud_shorthand("p2sm_hud_shorthand", "0", "Whether to hide the text part of HUD elements.\n", FCVAR_DONTRECORD);
 
-Variable sar_hud_rainbow("sar_hud_rainbow", "-1", -1, 1, "Enables the rainbow HUD mode. -1 = default, 0 = disable, 1 = enable.\n", FCVAR_DONTRECORD);
+Variable p2sm_hud_rainbow("p2sm_hud_rainbow", "-1", -1, 1, "Enables the rainbow HUD mode. -1 = default, 0 = disable, 1 = enable.\n", FCVAR_DONTRECORD);
 static bool g_rainbow = false;
 ON_INIT {
 	time_t t = time(NULL);
@@ -49,7 +49,7 @@ ON_INIT {
 static Color g_rainbow_color;
 
 ON_EVENT(FRAME) {
-	switch (sar_hud_rainbow.GetInt()) {
+	switch (p2sm_hud_rainbow.GetInt()) {
 		case 0:
 			g_rainbow = false;
 			break;
@@ -67,7 +67,7 @@ ON_EVENT(FRAME) {
 }
 
 static inline int getPrecision(bool velocity = false) {
-	int p = velocity ? sar_hud_velocity_precision.GetInt() : sar_hud_precision.GetInt();
+	int p = velocity ? p2sm_hud_velocity_precision.GetInt() : p2sm_hud_precision.GetInt();
 	if (p < 0) p = 0;
 	if (!sv_cheats.GetBool()) {
 		const int max = 2;
@@ -176,7 +176,7 @@ void HudContext::DrawElement(const char *fmt, ...) {
 	va_end(argptr);
 
 	// cut off to the first ": " if shorthand is on
-	if (sar_hud_shorthand.GetBool()) {
+	if (p2sm_hud_shorthand.GetBool()) {
 		char *colon = strstr(data, ": ");
 		if (colon) strcpy(data, colon + 2);
 	}
@@ -208,16 +208,16 @@ void HudContext::Reset(int slot) {
 
 	this->elements = 0;
 	this->group.fill(0);
-	this->xPadding = sar_hud_x.GetInt();
-	this->yPadding = sar_hud_y.GetInt();
-	this->spacing = sar_hud_spacing.GetInt();
+	this->xPadding = p2sm_hud_x.GetInt();
+	this->yPadding = p2sm_hud_y.GetInt();
+	this->spacing = p2sm_hud_spacing.GetInt();
 	this->maxWidth = 0;
 
-	this->font = scheme->GetFontByID(sar_hud_font_index.GetInt());
+	this->font = scheme->GetFontByID(p2sm_hud_font_index.GetInt());
 	this->fontSize = surface->GetFontHeight(font);
 
 	int r, g, b, a;
-	sscanf(sar_hud_font_color.GetString(), "%i%i%i%i", &r, &g, &b, &a);
+	sscanf(p2sm_hud_font_color.GetString(), "%i%i%i%i", &r, &g, &b, &a);
 	if (r == 255 && g == 255 && b == 255 && a == 255 && g_rainbow) {
 		this->textColor = g_rainbow_color;
 	} else {
@@ -311,17 +311,17 @@ void HudElement::IndexAll() {
 
 // Commands
 
-DECL_AUTO_COMMAND_COMPLETION(sar_hud_order_top, (elementOrder))
-DECL_AUTO_COMMAND_COMPLETION(sar_hud_order_bottom, (elementOrder))
+DECL_AUTO_COMMAND_COMPLETION(p2sm_hud_order_top, (elementOrder))
+DECL_AUTO_COMMAND_COMPLETION(p2sm_hud_order_bottom, (elementOrder))
 
-CON_COMMAND_F_COMPLETION(sar_hud_order_top, "sar_hud_order_top <name> - orders hud element to top\n", FCVAR_DONTRECORD, AUTOCOMPLETION_FUNCTION(sar_hud_order_top)) {
+CON_COMMAND_F_COMPLETION(p2sm_hud_order_top, "p2sm_hud_order_top <name> - orders hud element to top\n", FCVAR_DONTRECORD, AUTOCOMPLETION_FUNCTION(p2sm_hud_order_top)) {
 	if (args.ArgC() != 2) {
-		return console->Print(sar_hud_order_top.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_hud_order_top.ThisPtr()->m_pszHelpString);
 	}
 
 	auto elements = &vgui->elements;
 
-	auto name = std::string("sar_hud_") + std::string(args[1]);
+	auto name = std::string("p2sm_hud_") + std::string(args[1]);
 
 	auto result = std::find_if(elements->begin(), elements->end(), [name](const HudElement *a) {
 		if (Utils::ICompare(a->ElementName(), name)) {
@@ -340,14 +340,14 @@ CON_COMMAND_F_COMPLETION(sar_hud_order_top, "sar_hud_order_top <name> - orders h
 
 	console->Print("Moved HUD element %s to top.\n", args[1]);
 }
-CON_COMMAND_F_COMPLETION(sar_hud_order_bottom, "sar_hud_order_bottom <name> - orders hud element to bottom\n", FCVAR_DONTRECORD, AUTOCOMPLETION_FUNCTION(sar_hud_order_bottom)) {
+CON_COMMAND_F_COMPLETION(p2sm_hud_order_bottom, "p2sm_hud_order_bottom <name> - orders hud element to bottom\n", FCVAR_DONTRECORD, AUTOCOMPLETION_FUNCTION(p2sm_hud_order_bottom)) {
 	if (args.ArgC() != 2) {
-		return console->Print(sar_hud_order_bottom.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_hud_order_bottom.ThisPtr()->m_pszHelpString);
 	}
 
 	auto elements = &vgui->elements;
 
-	auto name = std::string("sar_hud_") + std::string(args[1]);
+	auto name = std::string("p2sm_hud_") + std::string(args[1]);
 
 	auto result = std::find_if(elements->begin(), elements->end(), [name](const HudElement *a) {
 		if (Utils::ICompare(a->ElementName(), name)) {
@@ -366,7 +366,7 @@ CON_COMMAND_F_COMPLETION(sar_hud_order_bottom, "sar_hud_order_bottom <name> - or
 
 	console->Print("Moved HUD element %s to bottom.\n", args[1]);
 }
-CON_COMMAND_F(sar_hud_order_reset, "sar_hud_order_reset - resets order of hud elements\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_hud_order_reset, "p2sm_hud_order_reset - resets order of hud elements\n", FCVAR_DONTRECORD) {
 	std::sort(vgui->elements.begin(), vgui->elements.end(), [](const HudElement *a, const HudElement *b) {
 		return a->orderIndex < b->orderIndex;
 	});
@@ -386,9 +386,9 @@ struct TextLine {
 	std::vector<TextComponent> components;
 };
 
-static std::map<long, TextLine> sar_hud_text_vals;
+static std::map<long, TextLine> p2sm_hud_text_vals;
 HUD_ELEMENT2_NO_DISABLE(text, HudType_InGame | HudType_Paused | HudType_Menu | HudType_LoadingScreen) {
-	for (auto &t : sar_hud_text_vals) {
+	for (auto &t : p2sm_hud_text_vals) {
 		int x = ctx->xPadding;
 		int y = ctx->yPadding + ctx->elements * (ctx->fontSize + ctx->spacing);
 		if (t.second.draw) {
@@ -483,15 +483,15 @@ long parseIdx(const char *idxStr) {
 	return idx;
 }
 
-CON_COMMAND_F(sar_hud_set_text, "sar_hud_set_text <id> <text>... - sets and shows the nth text value in the HUD\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_hud_set_text, "p2sm_hud_set_text <id> <text>... - sets and shows the nth text value in the HUD\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() < 3) {
-		console->Print(sar_hud_set_text.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_hud_set_text.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
 	long idx = parseIdx(args[1]);
 	if (idx == -1) {
-		console->Print(sar_hud_set_text.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_hud_set_text.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
@@ -540,38 +540,38 @@ CON_COMMAND_F(sar_hud_set_text, "sar_hud_set_text <id> <text>... - sets and show
 		components.push_back({curColor, component});
 	}
 
-	sar_hud_text_vals[idx].components = components;
+	p2sm_hud_text_vals[idx].components = components;
 }
 
-CON_COMMAND_F(sar_hud_set_text_color, "sar_hud_set_text_color <id> [color] - sets the color of the nth text value in the HUD. Reset by not giving color.\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_hud_set_text_color, "p2sm_hud_set_text_color <id> [color] - sets the color of the nth text value in the HUD. Reset by not giving color.\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() < 2 || args.ArgC() > 3) {
-		console->Print(sar_hud_set_text_color.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_hud_set_text_color.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
 	long idx = parseIdx(args[1]);
 	if (idx == -1) {
-		console->Print(sar_hud_set_text_color.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_hud_set_text_color.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
 	if (args.ArgC() == 2) {
-		sar_hud_text_vals[idx].defaultColor.reset();
+		p2sm_hud_text_vals[idx].defaultColor.reset();
 	} else {
 		auto col = Utils::GetColor(args[2]);
 		if (!col) return console->Print("Invalid color string '%s'\n", args[2]);
-		sar_hud_text_vals[idx].defaultColor = *col;
+		p2sm_hud_text_vals[idx].defaultColor = *col;
 	}
 }
 
-CON_COMMAND_F(sar_hud_hide_text, "sar_hud_hide_text <id|all> - hides the nth text value in the HUD\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_hud_hide_text, "p2sm_hud_hide_text <id|all> - hides the nth text value in the HUD\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() < 2) {
-		console->Print(sar_hud_hide_text.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_hud_hide_text.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
 	if (!strcmp(args[1], "all")) {
-		for (auto &t : sar_hud_text_vals) {
+		for (auto &t : p2sm_hud_text_vals) {
 			t.second.draw = false;
 		}
 		return;
@@ -579,21 +579,21 @@ CON_COMMAND_F(sar_hud_hide_text, "sar_hud_hide_text <id|all> - hides the nth tex
 
 	long idx = parseIdx(args[1]);
 	if (idx == -1) {
-		console->Print(sar_hud_hide_text.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_hud_hide_text.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
-	sar_hud_text_vals[idx].draw = false;
+	p2sm_hud_text_vals[idx].draw = false;
 }
 
-CON_COMMAND_F(sar_hud_show_text, "sar_hud_show_text <id|all> - shows the nth text value in the HUD\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_hud_show_text, "p2sm_hud_show_text <id|all> - shows the nth text value in the HUD\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() < 2) {
-		console->Print(sar_hud_show_text.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_hud_show_text.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
 	if (!strcmp(args[1], "all")) {
-		for (auto &t : sar_hud_text_vals) {
+		for (auto &t : p2sm_hud_text_vals) {
 			t.second.draw = true;
 		}
 		return;
@@ -601,26 +601,26 @@ CON_COMMAND_F(sar_hud_show_text, "sar_hud_show_text <id|all> - shows the nth tex
 
 	long idx = parseIdx(args[1]);
 	if (idx == -1) {
-		console->Print(sar_hud_show_text.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_hud_show_text.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
-	sar_hud_text_vals[idx].draw = true;
+	p2sm_hud_text_vals[idx].draw = true;
 }
 
-CON_COMMAND_F(sar_hud_toggle_text, "sar_hud_toggle_text <id> - toggles the nth text value in the HUD\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_hud_toggle_text, "p2sm_hud_toggle_text <id> - toggles the nth text value in the HUD\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() < 2) {
-		console->Print(sar_hud_toggle_text.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_hud_toggle_text.ThisPtr()->m_pszHelpString);
 		return;
 	}
 	
 	long idx = parseIdx(args[1]);
 	if (idx == -1) {
-		console->Print(sar_hud_toggle_text.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_hud_toggle_text.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
-	sar_hud_text_vals[idx].draw = !sar_hud_text_vals[idx].draw;
+	p2sm_hud_text_vals[idx].draw = !p2sm_hud_text_vals[idx].draw;
 }
 
 HUD_ELEMENT_MODE2(position, "0", 0, 2,
@@ -888,9 +888,9 @@ HUD_ELEMENT_MODE2(fps, "0", 0, 2, "Show fps (frames per second) on the SAR hud.\
 	}
 }
 
-CON_COMMAND_F(sar_pip_align, "sar_pip_align <top|center|bottom> <left|center|right> - aligns the remote view.\n", FCVAR_DONTRECORD) {
+CON_COMMAND_F(p2sm_pip_align, "p2sm_pip_align <top|center|bottom> <left|center|right> - aligns the remote view.\n", FCVAR_DONTRECORD) {
 	if (args.ArgC() != 3) {
-		return console->Print(sar_pip_align.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_pip_align.ThisPtr()->m_pszHelpString);
 	}
 	int sw, sh;
 	engine->GetScreenSize(nullptr, sw, sh);
@@ -904,7 +904,7 @@ CON_COMMAND_F(sar_pip_align, "sar_pip_align <top|center|bottom> <left|center|rig
 	} else if (!strcasecmp(args[1], "bottom")) {
 		y = 25;
 	} else {
-		return console->Print(sar_pip_align.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_pip_align.ThisPtr()->m_pszHelpString);
 	}
 
 	if (!strcasecmp(args[2], "left")) {
@@ -914,7 +914,7 @@ CON_COMMAND_F(sar_pip_align, "sar_pip_align <top|center|bottom> <left|center|rig
 	} else if (!strcasecmp(args[2], "right")) {
 		x = 25;
 	} else {
-		return console->Print(sar_pip_align.ThisPtr()->m_pszHelpString);
+		return console->Print(p2sm_pip_align.ThisPtr()->m_pszHelpString);
 	}
 
 	Variable("ss_pip_right_offset").SetValue(x);

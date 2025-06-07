@@ -57,7 +57,7 @@ public:
 	void OverrideView(ViewSetup *view);
 };
 
-extern Command sar_startdemos;
-extern Command sar_startdemosfolder;
-extern Command sar_skiptodemo;
-extern Command sar_nextdemo;
+extern Command p2sm_startdemos;
+extern Command p2sm_startdemosfolder;
+extern Command p2sm_skiptodemo;
+extern Command p2sm_nextdemo;

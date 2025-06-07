@@ -1,7 +1,7 @@
 .PHONY: all clean cvars
 .FORCE:
 
-CXX=g++-10
+CXX=gcc
 SDIR=src
 ODIR=obj
 
@@ -20,13 +20,13 @@ LDFLAGS=-m32 -shared -lstdc++fs -Llib/ffmpeg/lib/linux -lavformat -lavcodec -lav
 # Import config.mk, which can be used for optional config
 -include config.mk
 
-all: sar.so
+all: p2sm.so
 clean:
-	rm -rf $(ODIR) sar.so src/Version.hpp
+	rm -rf $(ODIR) p2sm.so src/Version.hpp
 
 -include $(DEPS)
 
-sar.so: src/Version.hpp $(OBJS)
+p2sm.so: src/Version.hpp $(OBJS)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 $(ODIR)/%.o: $(SDIR)/%.cpp
@@ -34,8 +34,8 @@ $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -MMD -c $< -o $@
 
 src/Version.hpp: .FORCE
-	if [ "$$RELEASE_BUILD" ]; then echo "#define SAR_VERSION \"$(VERSION)\"" >"$@"; fi
-	if [ -z "$$RELEASE_BUILD" ]; then echo "#define SAR_VERSION \"$(VERSION)-canary\"" >"$@"; fi
-	if [ -z "$$RELEASE_BUILD" ]; then echo "#define SAR_DEV_BUILD 1" >>"$@"; fi
-	echo "#define SAR_DEMO_SIGN_PUBKEY { $$DEMO_SIGN_PUBKEY }" >>"$@"
-	echo "#define SAR_DEMO_SIGN_PRIVKEY { $$DEMO_SIGN_PRIVKEY }" >>"$@"
+	if [ "$$RELEASE_BUILD" ]; then echo "#define P2SM_VERSION \"$(VERSION)\"" >"$@"; fi
+	if [ -z "$$RELEASE_BUILD" ]; then echo "#define P2SM_VERSION \"$(VERSION)-canary\"" >"$@"; fi
+	if [ -z "$$RELEASE_BUILD" ]; then echo "#define P2SM_DEV_BUILD 1" >>"$@"; fi
+	echo "#define P2SM_DEMO_SIGN_PUBKEY { $$DEMO_SIGN_PUBKEY }" >>"$@"
+	echo "#define P2SM_DEMO_SIGN_PRIVKEY { $$DEMO_SIGN_PRIVKEY }" >>"$@"

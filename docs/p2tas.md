@@ -71,7 +71,7 @@ An example of a tickbulk using all tickbulk parts:
 ```cs
 // moving forward, jumping for one tick, holding duck,
 // using command to enable trace and starting autoaim automation tool.
-69>0 1|0 0|J1Duzbo|sar_trace_record 1|autoaim ent prop_weighted_cube
+69>0 1|0 0|J1Duzbo|p2sm_trace_record 1|autoaim ent prop_weighted_cube
 ```
 
 Everything except console commands and tool commands is persistent, meaning that once set, the values will persist for the following ticks.
@@ -267,7 +267,7 @@ This tool decelerates the player as fast as possible towards the speed, in units
 check {pos <x> <y> <z>} {posepsilon <number>} {ang <pitch> <yaw>} {angepsilon <number>} {holding [entity_selector]}
 ```
 
-This tool can be used to perform a check on player's position or view angles. If position or view angles differ by more than given epsilon, the TAS script is restarted. It can also be used to check if the player is holding an item, with an optional entity selector. The tool will restart until the number of automatic restarts surpasses the number defined by the `sar_tas_check_max_replays` console variable.
+This tool can be used to perform a check on player's position or view angles. If position or view angles differ by more than given epsilon, the TAS script is restarted. It can also be used to check if the player is holding an item, with an optional entity selector. The tool will restart until the number of automatic restarts surpasses the number defined by the `p2sm_tas_check_max_replays` console variable.
 
 ### `duck` tool
 
@@ -352,7 +352,7 @@ Raw scripts are usually identified by a `_raw` suffix in the script's file name.
 
 Portal 2 TASing is famously annoying due to randomness - both game-based and physics based. There are currently efforts of artificially manipulating RNG to resolve script playback into a single possibility. So far, there's a limited amount of RNG manipulation available, mostly related to gel spread.
 
-SAR can generate files storing details of RNG state using console command `sar_rng_save`, which then can be used in a P2TAS script by referencing this file in the header of the script to reproduce exact same RNG state.
+SAR can generate files storing details of RNG state using console command `p2sm_rng_save`, which then can be used in a P2TAS script by referencing this file in the header of the script to reproduce exact same RNG state.
 
 ## Version History
 
@@ -376,4 +376,4 @@ SAR can generate files storing details of RNG state using console command `sar_r
   - Fix autostrafer behaviour at velocity length 0.
   - Pitchlock to the correct sign.
 - Version 7:
-  - Fix autostrafer air control limit with `sar_aircontrol` set.
+  - Fix autostrafer air control limit with `p2sm_aircontrol` set.

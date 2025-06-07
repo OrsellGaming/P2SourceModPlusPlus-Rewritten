@@ -10,14 +10,14 @@
 #include "Modules/Surface.hpp"
 #include "Variable.hpp"
 
-Variable sar_rhythmgame("sar_rhythmgame", "0", "Show a HUD indicating your groundframes as rhythm game like popups.\n");
+Variable p2sm_rhythmgame("p2sm_rhythmgame", "0", "Show a HUD indicating your groundframes as rhythm game like popups.\n");
 
 // Customization
-Variable sar_rhythmgame_combo("sar_rhythmgame_combo", "1", "Show a combo counter on the rhythm game HUD.\n");
-Variable sar_rhythmgame_font("sar_rhythmgame_font", "64", "The font to use for the rhythm game HUD.\n");
+Variable p2sm_rhythmgame_combo("p2sm_rhythmgame_combo", "1", "Show a combo counter on the rhythm game HUD.\n");
+Variable p2sm_rhythmgame_font("p2sm_rhythmgame_font", "64", "The font to use for the rhythm game HUD.\n");
 
 bool RhythmGameHud::ShouldDraw() {
-	return sar_rhythmgame.GetBool();
+	return p2sm_rhythmgame.GetBool();
 }
 
 void RhythmGameHud::HandleGroundframeLogic(int slot, bool grounded) {
@@ -31,7 +31,7 @@ void RhythmGameHud::HandleGroundframeLogic(int slot, bool grounded) {
 }
 
 void RhythmGameHud::Paint(int slot) {
-	auto font = scheme->GetFontByID(sar_rhythmgame_font.GetInt());
+	auto font = scheme->GetFontByID(p2sm_rhythmgame_font.GetInt());
 	float fh = surface->GetFontHeight(font);
 
 	for (unsigned i = 0; i < popups.size(); i++) {
@@ -71,7 +71,7 @@ void RhythmGameHud::Paint(int slot) {
 		surface->DrawTxt(font, x, y, popupColor, popupText.c_str());
 		if (popup.streak > 1 && popup.type == 0) {
 			std::string combo = "";
-			if (sar_rhythmgame_combo.GetBool()) combo = "(" + std::to_string(popup.streak) + "x)";
+			if (p2sm_rhythmgame_combo.GetBool()) combo = "(" + std::to_string(popup.streak) + "x)";
 			surface->DrawTxt(font, x + (surface->GetFontLength(font, popupText.c_str()) / 2) - (surface->GetFontLength(font, combo.c_str()) / 2), y + fh, Color{232, 179, 45, static_cast<uint8_t>(popup.alpha)}, combo.c_str());
 		}
 
@@ -92,7 +92,7 @@ void RhythmGameHud::OnJump(int slot) {
 	int screenWidth, screenHeight;
 	engine->GetScreenSize(nullptr, screenWidth, screenHeight);
 
-	auto font = scheme->GetFontByID(sar_rhythmgame_font.GetInt());
+	auto font = scheme->GetFontByID(p2sm_rhythmgame_font.GetInt());
 
 	int x = Math::RandomNumber(0, screenWidth - surface->GetFontLength(font, "PERFECT"));
 	int y = screenHeight - 200;

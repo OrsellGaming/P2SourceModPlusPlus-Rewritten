@@ -233,9 +233,9 @@ void RngManip::randomSeed(int *seed) {
 	playerTrace->EmitLog("RandomSeed(%d) -> %d", orig, *seed);
 }
 
-CON_COMMAND(sar_rng_save, "sar_rng_save [filename] - save RNG seed data to the specified file. If filename isn't given, use last TAS script path\n") {
+CON_COMMAND(p2sm_rng_save, "p2sm_rng_save [filename] - save RNG seed data to the specified file. If filename isn't given, use last TAS script path\n") {
 	if (args.ArgC() < 1 || args.ArgC() > 2) {
-		console->Print(sar_rng_save.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_rng_save.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
@@ -246,7 +246,7 @@ CON_COMMAND(sar_rng_save, "sar_rng_save [filename] - save RNG seed data to the s
 		} else if (tasPlayer->previousPlaybackInfo.HasActiveSlot()) {
 			filename = tasPlayer->previousPlaybackInfo.GetMainScript().header.rngManipFile;
 		} else {
-			console->Print(sar_rng_save.ThisPtr()->m_pszHelpString);
+			console->Print(p2sm_rng_save.ThisPtr()->m_pszHelpString);
 			console->Print("No filename specified and no previous TAS script played\n");
 			return;
 		}
@@ -262,9 +262,9 @@ CON_COMMAND(sar_rng_save, "sar_rng_save [filename] - save RNG seed data to the s
 	RngManip::saveData(filename.c_str());
 }
 
-CON_COMMAND(sar_rng_load, "sar_rng_load [filename] - load RNG seed data on next session start. If filename isn't given, use last TAS script path\n") {
+CON_COMMAND(p2sm_rng_load, "p2sm_rng_load [filename] - load RNG seed data on next session start. If filename isn't given, use last TAS script path\n") {
 	if (args.ArgC() < 1 || args.ArgC() > 2) {
-		console->Print(sar_rng_load.ThisPtr()->m_pszHelpString);
+		console->Print(p2sm_rng_load.ThisPtr()->m_pszHelpString);
 		return;
 	}
 
@@ -275,7 +275,7 @@ CON_COMMAND(sar_rng_load, "sar_rng_load [filename] - load RNG seed data on next 
 		} else if (tasPlayer->previousPlaybackInfo.HasActiveSlot()) {
 			filename = tasPlayer->previousPlaybackInfo.GetMainScript().header.rngManipFile;
 		} else {
-			console->Print(sar_rng_load.ThisPtr()->m_pszHelpString);
+			console->Print(p2sm_rng_load.ThisPtr()->m_pszHelpString);
 			console->Print("No filename specified and no previous TAS script played\n");
 			return;
 		}

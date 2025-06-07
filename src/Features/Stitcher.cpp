@@ -74,7 +74,7 @@ static struct {
 	std::vector<StitchRegion> regions;
 } g_stitch;
 
-Variable sar_stitcher("sar_stitcher", "0", "Enable the image stitcher.\n");
+Variable p2sm_stitcher("p2sm_stitcher", "0", "Enable the image stitcher.\n");
 
 static void resetStitcher() {
 	// Zero everything
@@ -93,7 +93,7 @@ static void resetStitcher() {
 	g_stitch.regions.clear();
 }
 
-CON_COMMAND(sar_stitcher_reset, "sar_stitcher_reset - reset the stitcher.\n") {
+CON_COMMAND(p2sm_stitcher_reset, "p2sm_stitcher_reset - reset the stitcher.\n") {
 	resetStitcher();
 }
 
@@ -144,7 +144,7 @@ static Color pickColor() {
 }
 
 static bool isStitching() {
-	return sar_stitcher.GetBool() && sv_cheats.GetBool();
+	return p2sm_stitcher.GetBool() && sv_cheats.GetBool();
 }
 
 static void initStitch(bool stitching) {
@@ -222,7 +222,7 @@ static void initStitch(bool stitching) {
 	was_stitching = stitching;
 }
 
-ON_EVENT(SAR_UNLOAD) { initStitch(false); }
+ON_EVENT(P2SM_UNLOAD) { initStitch(false); }
 
 static void doMovement(float delta) {
 	int vx = 0, vy = 0, vz = 0;

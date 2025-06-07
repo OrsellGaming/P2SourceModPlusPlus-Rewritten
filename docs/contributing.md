@@ -281,18 +281,18 @@ auto funcAddress = Memory::Absolute(MODULE("engine"), 0xdeadbeef);
 ### Console Commands
 
 Periodically, the `docs/cvars.md` file should be updated to match the list of
-cvars. This can be done by doing the `sar_cvars_dump_doc` command ingame, then
+cvars. This can be done by doing the `p2sm_cvars_dump_doc` command ingame, then
 moving the output file to the correct folder. (a symlink also works)
 
 #### Variables
 
 ```cpp
 // Boolean
-Variable sar_simple_mode("sar_simple_mode", "0", "Useful help description.\n");
+Variable p2sm_simple_mode("p2sm_simple_mode", "0", "Useful help description.\n");
 // Float
-Variable sar_mode("sar_mode", "0", 0, "Useful help description.\n");
+Variable p2sm_mode("p2sm_mode", "0", 0, "Useful help description.\n");
 // String
-Variable sar_text("sar_text", "a string", "Useful help description.\n", 0);
+Variable p2sm_text("p2sm_text", "a string", "Useful help description.\n", 0);
 
 // From the engine
 auto sv_cheats = Variable("sv_cheats");
@@ -309,7 +309,7 @@ Note: Keep a static version of a variable if it can be accessed more than once.
 Commands should always return a useful message if something went wrong.
 
 ```cpp
-CON_COMMAND(sar_hello, "Useful help description.\n") {
+CON_COMMAND(p2sm_hello, "Useful help description.\n") {
     if (args.ArgC() != 2) {
         return console->Print("Please enter a string!\n");
     }
@@ -325,12 +325,12 @@ CON_COMMAND(sar_hello, "Useful help description.\n") {
 
 // Fastest way to declare a hidden autocompletion function
 // Last argument is type of std::vector<std::string>. It is required to wrap it with ()
-CON_COMMAND_COMPLETION(sar_force_fov, "Description.\n", ({ "0", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140" })) {
+CON_COMMAND_COMPLETION(p2sm_force_fov, "Description.\n", ({ "0", "50", "60", "70", "80", "90", "100", "110", "120", "130", "140" })) {
     // Command callback
 }
 
 // Use this macro in order to call some initialization logic
-DECL_COMMAND_COMPLETION(sar_workshop) {
+DECL_COMMAND_COMPLETION(p2sm_workshop) {
     // Init some stuff
     if (workshop->maps.empty()) {
         workshop->Update();
@@ -354,7 +354,7 @@ DECL_COMMAND_COMPLETION(sar_workshop) {
     FINISH_COMMAND_COMPLETION();
 }
 
-CON_COMMAND_F_COMPLETION(sar_workshop, "Description.\n", FCVAR_NONE, AUTOCOMPLETION_FUNCTION(sar_workshop)) {
+CON_COMMAND_F_COMPLETION(p2sm_workshop, "Description.\n", FCVAR_NONE, AUTOCOMPLETION_FUNCTION(p2sm_workshop)) {
     // Command callback
 }
 ```
@@ -363,17 +363,17 @@ CON_COMMAND_F_COMPLETION(sar_workshop, "Description.\n", FCVAR_NONE, AUTOCOMPLET
 
 #### Elements
 
-HUD elements can be declared with just a few lines of code. All elements are grouped together and start with `sar_hud_`. They also share the same settings starting with `sar_hud_default_`. The order of all elements can be customized by the user but the default order has to be declared separately.
+HUD elements can be declared with just a few lines of code. All elements are grouped together and start with `p2sm_hud_`. They also share the same settings starting with `p2sm_hud_default_`. The order of all elements can be customized by the user but the default order has to be declared separately.
 
 ```cpp
 #include "Features/Hud/Hud.hpp"
 
-// Called if: sar_hud_frame 1
+// Called if: p2sm_hud_frame 1
 HUD_ELEMENT(frame, "0", "Default example.\n", HudType_InGame | HudType_Paused) {
     ctx->DrawElement("frame: %i", session->currentFrame);
 }
 
-// Called if: sar_hud_some_mode > 0
+// Called if: p2sm_hud_some_mode > 0
 HUD_ELEMENT_MODE(some_mode, "0", 0, 5, "Mode example.\n", HudType_InGame | HudType_Paused) {
     if (mode == 4) {
         ctx->DrawElement("mode: 4");
@@ -382,7 +382,7 @@ HUD_ELEMENT_MODE(some_mode, "0", 0, 5, "Mode example.\n", HudType_InGame | HudTy
     }
 }
 
-// Called if: sar_hud_some_text[0] != '\0' (not empty)
+// Called if: p2sm_hud_some_text[0] != '\0' (not empty)
 HUD_ELEMENT_STRING(some_text, "", 0, 5, "Text example.\n", HudType_InGame | HudType_Paused) {
     ctx->DrawElement("mode: %s", text);
 }
@@ -436,11 +436,11 @@ public:
 
 extern MyCustomHud myHud;
 
-extern Variable sar_my_hud;
-extern Variable sar_my_hud_x;
-extern Variable sar_my_hud_y;
-extern Variable sar_my_hud_font_color;
-extern Variable sar_my_hud_font_index;
+extern Variable p2sm_my_hud;
+extern Variable p2sm_my_hud_x;
+extern Variable p2sm_my_hud_y;
+extern Variable p2sm_my_hud_font_color;
+extern Variable p2sm_my_hud_font_index;
 ```
 
 ```cpp
@@ -452,11 +452,11 @@ extern Variable sar_my_hud_font_index;
 
 #include "Variable.hpp"
 
-Variable sar_my_hud("sar_my_hud", "0", 0, "Draws my HUD.\n");
-Variable sar_my_hud_x("sar_my_hud_x", "0", 0, "X offset of my HUD.\n");
-Variable sar_my_hud_y("sar_my_hud_y", "100", 0, "Y offset of my HUD.\n");
-Variable sar_my_hud_font_color("sar_my_hud_font_color", "255 255 255 255", "RGBA font color of my HUD.\n", 0);
-Variable sar_my_hud_font_index("sar_my_hud_font_index", "70", 0, "Font index of my HUD.\n");
+Variable p2sm_my_hud("p2sm_my_hud", "0", 0, "Draws my HUD.\n");
+Variable p2sm_my_hud_x("p2sm_my_hud_x", "0", 0, "X offset of my HUD.\n");
+Variable p2sm_my_hud_y("p2sm_my_hud_y", "100", 0, "Y offset of my HUD.\n");
+Variable p2sm_my_hud_font_color("p2sm_my_hud_font_color", "255 255 255 255", "RGBA font color of my HUD.\n", 0);
+Variable p2sm_my_hud_font_index("p2sm_my_hud_font_index", "70", 0, "Font index of my HUD.\n");
 
 MyHud myHud;
 
@@ -469,18 +469,18 @@ MyHud::MyHud()
 // Implement a more complex drawing logic if needed
 bool MyHud::ShouldDraw() {
     // Calling the base function will resolve the HUD type condition
-    return sar_my_hud.GetBool() && Hud::ShouldDraw();
+    return p2sm_my_hud.GetBool() && Hud::ShouldDraw();
 }
 
 // Will be called if ShouldDraw allows it
 // The slot value is the current splitscreen index which will always
 // be 0 if we do not want splitscreens or if the game does not support them
 void MyHud::Paint(int slot) {
-    auto xOffset = sar_my_hud_x.GetInt();
-    auto yOffset = sar_my_hud_y.GetInt();
+    auto xOffset = p2sm_my_hud_x.GetInt();
+    auto yOffset = p2sm_my_hud_y.GetInt();
 
-    auto font = scheme->GetDefaultFont() + sar_my_hud_font_index.GetInt();
-    auto fontColor = this->GetColor(sar_my_hud_font_color.GetString());
+    auto font = scheme->GetDefaultFont() + p2sm_my_hud_font_index.GetInt();
+    auto fontColor = this->GetColor(p2sm_my_hud_font_color.GetString());
 
     surface->DrawTxt(font, xOffset, yOffset, fontColor, "%s", "hi :)");
 }
@@ -520,7 +520,7 @@ Since offsets can be different for every engine or platform you have to define t
 #### Versions
 
 ```cpp
-if (sar.game->Is(SourceGame_Portal2)) {
+if (p2sm.game->Is(SourceGame_Portal2)) {
     // Only runs when game is Portal 2
 }
 ```
@@ -529,7 +529,7 @@ if (sar.game->Is(SourceGame_Portal2)) {
 
 ```cpp
 // Only works in The Stanley Parable
-sar_hello.UniqueFor(SourceGame_TheStanleyParable);
+p2sm_hello.UniqueFor(SourceGame_TheStanleyParable);
 ```
 
 ### SDK

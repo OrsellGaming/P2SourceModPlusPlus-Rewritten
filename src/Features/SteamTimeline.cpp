@@ -6,8 +6,8 @@
 #include "Speedrun/SpeedrunTimer.hpp"
 
 /* Timeline can get cluttered up (especially at long recording lengths), nice to have an option to disable adding splits. */
-Variable sar_timeline_splits("sar_timeline_splits", "1", "Add split markers to the Steam Timeline.\n");
-Variable sar_timeline_show_completed("sar_timeline_show_completed", "0", "Only show speedrun starts and splits with matching finishes.\n");
+Variable p2sm_timeline_splits("p2sm_timeline_splits", "1", "Add split markers to the Steam Timeline.\n");
+Variable p2sm_timeline_show_completed("p2sm_timeline_show_completed", "0", "Only show speedrun starts and splits with matching finishes.\n");
 
 Timeline *timeline;
 
@@ -23,15 +23,15 @@ void Timeline::StartSpeedrun() {
 	g_speedrunStart = std::chrono::system_clock::now();
 	g_pendingSplits.clear();
 
-	if (sar_timeline_show_completed.GetBool()) return;
+	if (p2sm_timeline_show_completed.GetBool()) return;
 	steam->g_timeline->AddTimelineEvent("steam_timer", "Speedrun Start", "", 1, 0.0f, 0.0f, k_ETimelineEventClipPriority_Standard);
 }
 
 void Timeline::Split(std::string name, std::string time) {
 	if (!steam->hasLoaded) return;
 	std::chrono::duration<float> currentOffset = std::chrono::system_clock::now() - g_speedrunStart;
-	if (sar_timeline_splits.GetBool()) {
-		if (sar_timeline_show_completed.GetBool()) {
+	if (p2sm_timeline_splits.GetBool()) {
+		if (p2sm_timeline_show_completed.GetBool()) {
 			g_pendingSplits.push_back({name, time, currentOffset.count()});
 		} else {
 			steam->g_timeline->AddTimelineEvent("steam_bolt", name.c_str(), time.c_str(), 0, 0.0f, 0.0f, k_ETimelineEventClipPriority_None);
@@ -57,7 +57,7 @@ ON_EVENT(SPEEDRUN_FINISH) {
 	auto fl_time = SpeedrunTimer::GetTotalTicks() * engine->GetIPT();
 	auto time = SpeedrunTimer::Format(fl_time);
 
-	if (sar_timeline_show_completed.GetBool()) {
+	if (p2sm_timeline_show_completed.GetBool()) {
 		steam->g_timeline->AddTimelineEvent("steam_timer", "Speedrun Start", "", 1, -offset.count(), 0.0f, k_ETimelineEventClipPriority_Standard);
 
 		for (const auto &[splitName, splitTime, splitOffset] : g_pendingSplits) {

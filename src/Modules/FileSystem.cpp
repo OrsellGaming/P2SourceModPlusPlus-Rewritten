@@ -89,7 +89,7 @@ std::string FileSystem::GetSaveDirectory() {
 #endif
 
 bool FileSystem::MapExists(std::string name) {
-	if (sar.game->Is(SourceGame_INFRA)) return true; // the maps are inside VPKs
+	if (p2sm.game->Is(SourceGame_INFRA)) return true; // the maps are inside VPKs
 	name = "maps/" + name;
 	if (!Utils::EndsWith(name, ".bsp")) name += ".bsp";
 	return FileExistsSomewhere(name);

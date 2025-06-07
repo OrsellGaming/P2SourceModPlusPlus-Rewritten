@@ -36,6 +36,6 @@ public:
 
 extern Listener *listener;
 
-extern Variable sar_debug_listener;
+extern Variable p2sm_debug_listener;
 
-extern Command sar_dump_events;
+extern Command p2sm_dump_events;
